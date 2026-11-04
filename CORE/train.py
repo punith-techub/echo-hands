@@ -368,6 +368,27 @@ def train_and_evaluate(epochs: int = 100, samples_per_class: int = 40):
                         feats_list.append(feat.cpu())
                         labels_list.append(CLASS_TO_INDEX[let])
 
+    # Ingest official ISL hand chart crops with rich augmentations
+    isl_hands_dir = os.path.join(data_dir, "isl_hand_samples")
+    if os.path.exists(isl_hands_dir):
+        print("Ingesting official ISL hand chart crops with rotation/scale augmentations...")
+        for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ":
+            l_path = os.path.join(isl_hands_dir, f"{letter}.png")
+            if not os.path.exists(l_path):
+                continue
+            l_bgr = cv2.imread(l_path)
+            l_rgb = cv2.cvtColor(l_bgr, cv2.COLOR_BGR2RGB)
+            lh, lw = l_rgb.shape[:2]
+            for angle in [-12, -8, -4, 0, 4, 8, 12]:
+                for scale in [0.92, 1.0, 1.08]:
+                    M = cv2.getRotationMatrix2D((lw / 2, lh / 2), angle, scale)
+                    warped = cv2.warpAffine(l_rgb, M, (lw, lh), borderValue=[255, 255, 255])
+                    t = (torch.from_numpy(warped).permute(2, 0, 1).unsqueeze(0).float() / 255.0 - mean) / std
+                    with torch.no_grad():
+                        feat = model.pool(model.features(t)).flatten(1)
+                    feats_list.append(feat.cpu())
+                    labels_list.append(CLASS_TO_INDEX[letter])
+
     X_all = torch.cat(feats_list, dim=0)  # (N, 576)
     y_all = torch.tensor(labels_list)     # (N,)
 

@@ -165,15 +165,26 @@ class ISLMemoryTrainer:
                 }
             }
 
-        # Also initialize centroids for all 35 alphanumeric classes so they can be matched & punished
+        # Also initialize centroids for all 35 alphanumeric classes using real ISL hand crops where available
         from CORE.sign_knowledge import ALPHANUMERIC_CLASSES, ALPHANUMERIC_METADATA, CLASS_TO_INDEX
+        isl_hands_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "isl_hand_samples")
         for cls in ALPHANUMERIC_CLASSES:
             if cls in self.prototypes and self.prototypes[cls].get("metadata", {}).get("is_user_taught"):
                 continue
-            idx = CLASS_TO_INDEX[cls]
-            with torch.no_grad():
-                w = active_model.classifier.weight[idx].clone()
-                norm_w = F.normalize(w, p=2, dim=0)
+            hand_file = os.path.join(isl_hands_dir, f"{cls}.png")
+            if os.path.exists(hand_file):
+                img = cv2.imread(hand_file)
+                rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+                tensor = torch.from_numpy(rgb).permute(2, 0, 1).unsqueeze(0).float() / 255.0
+                norm_tensor = (tensor - mean) / std
+                with torch.no_grad():
+                    _, emb = active_model.extract_features(norm_tensor)
+                    norm_w = F.normalize(emb[0], p=2, dim=0)
+            else:
+                idx = CLASS_TO_INDEX[cls]
+                with torch.no_grad():
+                    w = active_model.classifier.weight[idx].clone()
+                    norm_w = F.normalize(w, p=2, dim=0)
             meta = ALPHANUMERIC_METADATA.get(cls, {})
             self.prototypes[cls] = {
                 "centroid": norm_w.cpu(),

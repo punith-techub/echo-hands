@@ -123,20 +123,20 @@ class MultiSignEngine:
         h, w = rgb.shape[:2]
         total_pixels = h * w
 
-        # 1. YCrCb Color Space directly from RGB (covers diverse Indian skin tones: fair to dark brown)
+        # 1. YCrCb Color Space directly from RGB (covers diverse Indian skin tones: fair, wheatish to deep brown)
         ycrcb = cv2.cvtColor(rgb, cv2.COLOR_RGB2YCrCb)
-        lower_ycrcb = np.array([30, 130, 75], dtype=np.uint8)
-        upper_ycrcb = np.array([255, 185, 135], dtype=np.uint8)
+        lower_ycrcb = np.array([15, 122, 65], dtype=np.uint8)
+        upper_ycrcb = np.array([255, 192, 145], dtype=np.uint8)
         mask_ycrcb = cv2.inRange(ycrcb, lower_ycrcb, upper_ycrcb)
 
         # 2. HSV Color Space directly from RGB
         hsv = cv2.cvtColor(rgb, cv2.COLOR_RGB2HSV)
-        lower_hsv1 = np.array([0, 20, 30], dtype=np.uint8)
-        upper_hsv1 = np.array([26, 235, 255], dtype=np.uint8)
+        lower_hsv1 = np.array([0, 15, 25], dtype=np.uint8)
+        upper_hsv1 = np.array([45, 245, 255], dtype=np.uint8)
         mask_hsv1 = cv2.inRange(hsv, lower_hsv1, upper_hsv1)
 
-        lower_hsv2 = np.array([160, 20, 30], dtype=np.uint8)
-        upper_hsv2 = np.array([180, 235, 255], dtype=np.uint8)
+        lower_hsv2 = np.array([160, 15, 25], dtype=np.uint8)
+        upper_hsv2 = np.array([180, 245, 255], dtype=np.uint8)
         mask_hsv2 = cv2.inRange(hsv, lower_hsv2, upper_hsv2)
         mask_hsv = cv2.bitwise_or(mask_hsv1, mask_hsv2)
 
@@ -387,27 +387,31 @@ class MultiSignEngine:
         for cnt in contours:
             area = cv2.contourArea(cnt)
             # Area gating (allows hands from medium-shot YouTube videos and close-up webcams)
-            c_min_area = total_area * (0.0015 if allow_empty else self.min_area_fraction)
-            c_max_area = total_area * (0.50 if allow_empty else self.max_area_fraction)
+            c_min_area = total_area * (0.0020 if allow_empty else self.min_area_fraction)
+            c_max_area = total_area * (0.45 if allow_empty else self.max_area_fraction)
             if c_min_area <= area <= c_max_area:
                 bx, by, bw, bh = cv2.boundingRect(cnt)
 
-                # REJECT BACKGROUND DOORS & FURNITURE IN WEBCAM STREAM:
+                # REJECT BACKGROUND DOORS, WALL PANELS & FURNITURE IN WEBCAM STREAM:
                 if allow_empty:
-                    # 1. Door touches top of frame and spans more than 60% of vertical height
-                    if by <= 2 and bh > (h * 0.60):
+                    # 1. Door touches top of frame and spans more than 40% of vertical height
+                    if by <= 3 and bh > (h * 0.40):
                         continue
-                    # 2. Touches both horizontal borders
-                    if bx <= 2 and (bx + bw) >= (w - 3):
+                    # 2. Touches both horizontal borders or spans full width
+                    if bw > (w * 0.85):
                         continue
-                    # 3. High solidity (>0.94) rectangle with huge area: flat door panels or cabinets
+                    # 3. High solidity (>0.92) rectangle with huge area: flat door panels or cabinets
                     box_area = bw * bh
                     solidity = area / float(box_area) if box_area > 0 else 0
-                    if solidity > 0.94 and area > (total_area * 0.15):
+                    if solidity > 0.92 and area > (total_area * 0.10):
                         continue
-                    # 4. Aspect ratio check for hands: ISL hand bounding boxes are 0.20 to 4.5
+                    # 4. Aspect ratio check for human hands: ISL hand bounding boxes are 0.25 to 3.5
                     aspect = bw / float(bh) if bh > 0 else 1.0
-                    if not (0.20 <= aspect <= 4.5):
+                    if not (0.25 <= aspect <= 3.5):
+                        continue
+                    # 5. Position: Hands in webcam view are held in active interactive zone
+                    cy_box = by + bh / 2.0
+                    if cy_box < (h * 0.12):
                         continue
                 else:
                     aspect = bw / float(bh) if bh > 0 else 1.0
@@ -415,6 +419,10 @@ class MultiSignEngine:
                         continue
 
                 raw_boxes.append((bx, by, bw, bh))
+
+        # In webcam mode: A human has at most 2 hands. If background noise remains, keep top 2 largest contours
+        if allow_empty and len(raw_boxes) > 2:
+            raw_boxes = sorted(raw_boxes, key=lambda b: b[2] * b[3], reverse=True)[:2]
 
         # If no contours match and allow_empty is requested (e.g. live webcam stream), return empty
         if not raw_boxes:

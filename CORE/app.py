@@ -168,7 +168,7 @@ class WebcamPredictRequest(BaseModel):
     session_id: Optional[str] = "webcam_session"
     preferred_brain: Optional[str] = None
     skip_verification: Optional[bool] = False
-    allow_empty: Optional[bool] = False
+    allow_empty: Optional[bool] = True
     include_gradcam: Optional[bool] = False
 
 def process_translation_pipeline(
@@ -431,7 +431,7 @@ async def webcam_predict(req: WebcamPredictRequest):
         preferred_brain=req.preferred_brain,
         session_id=req.session_id or "webcam_session",
         skip_verification=bool(req.skip_verification),
-        allow_empty=bool(req.allow_empty),
+        allow_empty=True if req.allow_empty is None else bool(req.allow_empty),
         include_gradcam=bool(req.include_gradcam)
     )
 
