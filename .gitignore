@@ -1,4 +1,59 @@
+# Environment variables & Secrets
 .env
+.env.*
+!.env.example
+*.key
+*.pem
+*.cert
+*.p12
+*.pfx
+credentials.json
+client_secrets.json
+service_account*.json
+
+# Python cache & compiled files
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+
+# Testing & Coverage
 .pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+
+# IDE & Editor settings
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Operating System artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# Temporary test & debug images
+data/isl_alphabet_crops/
+data/cam_*.png
+data/test_*.png
+data/check_*.png
+data/*_crop*.png
+data/*_detected*.png
+data/*_actual*.png
+data/*_vis*.png
+data/*_area*.png
+data/c_vs_user.png
