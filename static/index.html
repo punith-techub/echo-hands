@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ECHOHANDS 5.0 // ASTRA-VISION Tactical ISL Neural HUD</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700;800&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body class="tactical-hud">
+  <!-- Scanline & Ambient Grid Overlays -->
+  <div class="hud-scanlines"></div>
+  <div class="hud-grid-overlay"></div>
+
+  <!-- Main Viewport Container (100% Contained, Zero Scroll Overflow) -->
+  <div class="viewport-hud-container">
+    
+    <!-- HEADER BAR -->
+    <header class="hud-header">
+      <div class="header-left">
+        <div class="hud-logo-bracket">[</div>
+        <div class="hud-brand">
+          <div class="brand-title">ASTRA-VISION <span class="version-tag">v5.0</span></div>
+          <div class="brand-subtitle">ECHOHANDS // REAL-TIME ISL TACTICAL NEURAL INTERPRETER</div>
+        </div>
+        <div class="hud-logo-bracket">]</div>
+      </div>
+
+      <div class="header-center">
+        <div class="telemetry-pill">
+          <span class="telemetry-dot pulse-green"></span>
+          <span class="telemetry-label">SYSTEM:</span>
+          <span class="telemetry-val text-green" id="sys-status">ARMED & ONLINE</span>
+        </div>
+        <div class="telemetry-pill">
+          <span class="telemetry-label">CORE:</span>
+          <span class="telemetry-val text-cyan">DUAL-BRAIN HYBRID</span>
+        </div>
+        <div class="telemetry-pill">
+          <span class="telemetry-label">LATENCY:</span>
+          <span class="telemetry-val text-amber" id="telemetry-latency">-- ms</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <button class="tactical-btn btn-sm" id="btn-open-metrics">
+          <span class="btn-icon">📊</span> BENCHMARK METRICS
+        </button>
+        <button class="tactical-btn btn-sm" id="btn-open-learn">
+          <span class="btn-icon">🧠</span> CONTINUOUS LEARN
+        </button>
+        <button class="tactical-btn btn-sm btn-ghost" id="btn-clear-all">
+          <span class="btn-icon">↺</span> RESET
+        </button>
+      </div>
+    </header>
+
+    <!-- 3-COLUMN COCKPIT HUD -->
+    <main class="hud-cockpit-grid">
+
+      <!-- COLUMN 1: INGESTION & TARGET SELECTION -->
+      <section class="hud-col col-ingestion">
+        <div class="col-panel-box">
+          <div class="panel-header">
+            <span class="corner-bracket top-left"></span>
+            <span class="corner-bracket top-right"></span>
+            <span class="panel-tag">INGESTION // TARGET RADAR</span>
+          </div>
+
+          <!-- Dropzone -->
+          <div class="tactical-dropzone" id="dropzone">
+            <input type="file" id="file-input" accept="image/*" class="hidden-input">
+            <div class="reticle-frame">
+              <div class="reticle-crosshair"></div>
+              <div class="reticle-circle"></div>
+              <div class="dropzone-text">
+                <span class="drop-icon">⊕</span>
+                <span class="drop-main">DROP IMAGE OR CLICK TO SCAN</span>
+                <span class="drop-sub">Single Gesture, Dual-Hand, or Multi-Sign Strip</span>
+              </div>
+            </div>
+            <div class="scanning-laser" id="scanning-laser"></div>
+          </div>
+
+          <!-- Quick-Target Sample Chips -->
+          <div class="section-title">QUICK-TARGET BENCHMARK CHIPS</div>
+          <div class="quick-chips-grid" id="quick-chips">
+            <button class="chip-btn" data-target="sample_letter_a.png">Letter [A]</button>
+            <button class="chip-btn" data-target="sample_number_5.png">Digit [5]</button>
+            <button class="chip-btn" data-target="sample_namaste.png">Word [NAMASTE]</button>
+            <button class="chip-btn" data-target="sample_help.png">Word [HELP]</button>
+            <button class="chip-btn" data-target="sample_strip_cat.png">Strip [C-A-T]</button>
+            <button class="chip-btn" data-target="sample_strip_help.png">Strip [H-E-L-P]</button>
+            <button class="chip-btn" data-target="sample_sentence_food.png">ISL [I NEED FOOD]</button>
+          </div>
+
+          <!-- Arbitration Engine Mode Switch -->
+          <div class="section-title">NEURAL ARBITRATION MODE</div>
+          <div class="mode-toggles">
+            <button class="mode-btn active" data-mode="auto">AUTO (DUAL-BRAIN)</button>
+            <button class="mode-btn" data-mode="alphanumeric">ALPHANUMERIC 35</button>
+            <button class="mode-btn" data-mode="word">ISL 60+ PROTOTYPE</button>
+          </div>
+
+          <!-- System Status Monitor -->
+          <div class="telemetry-readout-card">
+            <div class="readout-row">
+              <span class="r-key">BACKBONE CNN:</span>
+              <span class="r-val text-cyan">ResNet-Stem 512D</span>
+            </div>
+            <div class="readout-row">
+              <span class="r-key">PROTOTYPE MEMORY:</span>
+              <span class="r-val text-green" id="proto-count">64 Gestures</span>
+            </div>
+            <div class="readout-row">
+              <span class="r-key">PARSER:</span>
+              <span class="r-val">L-to-R Reading Order</span>
+            </div>
+            <div class="readout-row">
+              <span class="r-key">ACCELERATOR:</span>
+              <span class="r-val" id="device-accel">CPU PyTorch</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLUMN 2: VISUAL INTELLIGENCE & EXPLAINABILITY HUD -->
+      <section class="hud-col col-vision">
+        <div class="col-panel-box vision-panel">
+          <div class="panel-header">
+            <span class="corner-bracket top-left"></span>
+            <span class="corner-bracket top-right"></span>
+            <span class="panel-tag">VISUAL TELEMETRY & ATTENTION HUD</span>
+            <div class="vision-tab-group">
+              <button class="vision-tab-btn active" id="tab-segmentation">OPTICAL TARGET</button>
+              <button class="vision-tab-btn" id="tab-gradcam">GRAD-CAM ATTENTION</button>
+            </div>
+          </div>
+
+          <!-- Visual Canvas Viewport -->
+          <div class="vision-canvas-container" id="canvas-container">
+            <!-- Optical Image View -->
+            <div class="view-pane active" id="pane-optical">
+              <canvas id="optical-canvas"></canvas>
+              <div class="viewport-placeholder" id="optical-placeholder">
+                <div class="wireframe-cross"></div>
+                <span>AWAITING OPTICAL INGESTION</span>
+              </div>
+            </div>
+
+            <!-- Grad-CAM Thermal Heatmap View -->
+            <div class="view-pane" id="pane-gradcam">
+              <img id="gradcam-img" alt="Grad-CAM Activation" src="">
+              <div class="viewport-placeholder" id="gradcam-placeholder">
+                <span>GRAD-CAM ACTIVATION AWAITING TARGET</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Multi-Sign Reading Order Strip Inspector -->
+          <div class="strip-inspector-container">
+            <div class="strip-header">
+              <span class="strip-title">READING-ORDER SIGN PARSER [L-TO-R SEQUENCE]</span>
+              <span class="strip-count" id="strip-count">0 TOKENS DETECTED</span>
+            </div>
+            <div class="strip-scroll-row" id="strip-carousel">
+              <div class="strip-empty-hint">No multi-sign sequence loaded</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- COLUMN 3: TRANSLATION & SPEECH SYNTHESIS ENGINE -->
+      <section class="hud-col col-speech">
+        <div class="col-panel-box speech-panel">
+          <div class="panel-header">
+            <span class="corner-bracket top-left"></span>
+            <span class="corner-bracket top-right"></span>
+            <span class="panel-tag">NEURAL SYNTHESIS // BILINGUAL TTS</span>
+          </div>
+
+          <!-- Real-Time Waveform Visualizer Canvas -->
+          <div class="waveform-hud-card">
+            <div class="waveform-header">
+              <span class="wf-status" id="tts-audio-status">STANDBY</span>
+              <span class="wf-hz">48 kHz // ZERO-LATENCY NATIVE TTS</span>
+            </div>
+            <canvas id="waveform-canvas" width="480" height="75"></canvas>
+          </div>
+
+          <!-- Dual Translation Displays -->
+          <div class="translation-cards-group">
+            <!-- English Card -->
+            <div class="trans-card english-card">
+              <div class="card-head">
+                <span class="lang-tag">ENGLISH [SVO SYNTHESIS]</span>
+                <button class="mini-action-btn" id="btn-copy-en" title="Copy English">📋</button>
+              </div>
+              <div class="card-body" id="trans-english">
+                Awaiting input gesture...
+              </div>
+            </div>
+
+            <!-- Hindi Card -->
+            <div class="trans-card hindi-card">
+              <div class="card-head">
+                <span class="lang-tag">HINDI (हिन्दी) [SOV NATURAL]</span>
+                <button class="mini-action-btn" id="btn-copy-hi" title="Copy Hindi">📋</button>
+              </div>
+              <div class="card-body" id="trans-hindi">
+                अनुवाद की प्रतीक्षा...
+              </div>
+              <div class="card-footer" id="trans-phonetic">
+                Phonetic: --
+              </div>
+            </div>
+          </div>
+
+          <!-- Audio Speech Control Center -->
+          <div class="speech-controls-card">
+            <div class="controls-grid">
+              <div class="ctrl-group">
+                <label>SPEECH VOICE</label>
+                <select id="voice-select" class="hud-select">
+                  <option value="en-IN">Indian English (en-IN)</option>
+                  <option value="hi-IN">Hindi Voice (hi-IN)</option>
+                </select>
+              </div>
+              <div class="ctrl-group">
+                <label>SPEED: <span id="val-rate">1.0x</span></label>
+                <input type="range" id="rate-slider" min="0.5" max="1.5" step="0.05" value="0.95" class="hud-slider">
+              </div>
+              <div class="ctrl-group">
+                <label>PITCH: <span id="val-pitch">1.0</span></label>
+                <input type="range" id="pitch-slider" min="0.6" max="1.4" step="0.05" value="1.0" class="hud-slider">
+              </div>
+            </div>
+
+            <!-- Big Audio Trigger Button -->
+            <button class="tactical-speak-btn" id="btn-speak">
+              <span class="speaker-icon">🔊</span>
+              <span class="speak-label">SPEAK TRANSLATION</span>
+            </button>
+          </div>
+
+          <!-- Decision Margins & Sign Signature HUD -->
+          <div class="signature-telemetry-card">
+            <div class="sig-col">
+              <span class="s-label">CONFIDENCE:</span>
+              <span class="s-val text-cyan" id="sig-conf">--%</span>
+            </div>
+            <div class="sig-col">
+              <span class="s-label">DECISION MARGIN:</span>
+              <span class="s-val text-green" id="sig-margin">--</span>
+            </div>
+            <div class="sig-col">
+              <span class="s-label">HANDEDNESS:</span>
+              <span class="s-val" id="sig-handedness">--</span>
+            </div>
+          </div>
+
+          <!-- SELF-LEARNING INTERACTIVE REINFORCEMENT HUD (Thumbs Up / Down) -->
+          <div class="feedback-card" id="feedback-container">
+            <div class="feedback-prompt">
+              <span class="feedback-title">WAS THIS GESTURE PREDICTION ACCURATE?</span>
+              <div class="feedback-buttons">
+                <button class="tactical-btn btn-sm btn-thumbs-up" id="btn-thumbs-up" title="Confirm Prediction (Reward Model)">
+                  <span class="btn-icon">👍</span> REWARD (CORRECT)
+                </button>
+                <button class="tactical-btn btn-sm btn-thumbs-down" id="btn-thumbs-down" title="Report Incorrect & Teach Model">
+                  <span class="btn-icon">👎</span> PUNISH & TEACH
+                </button>
+              </div>
+            </div>
+
+            <!-- Inline Teaching Drawer -->
+            <div class="correction-drawer hidden" id="correction-drawer">
+              <div class="correction-header">
+                <span class="correction-label">FEEDBACK & SELF-LEARNING // ENTER CORRECT SIGN</span>
+                <button class="mini-close-btn" id="btn-close-correction">×</button>
+              </div>
+              <div class="correction-controls">
+                <input type="text" id="correction-input" placeholder="e.g. A, B, 5, NAMASTE, HELP, WATER" class="hud-input" list="known-signs-list">
+                <datalist id="known-signs-list"></datalist>
+                <button class="tactical-btn btn-primary" id="btn-submit-correction">PUNISH WRONG & TRAIN NEW</button>
+              </div>
+              <div class="correction-status" id="correction-status"></div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+    </main>
+
+    <!-- FOOTER HUD BAR -->
+    <footer class="hud-footer">
+      <div class="footer-left">
+        <span class="status-marker">●</span>
+        <span>ECHOHANDS MILITARY TACTICAL SPECIFICATION 5.0 // BILINGUAL ISL ENGINE</span>
+      </div>
+      <div class="footer-right">
+        <span>SOV-TO-SVO DUAL GRAMMAR ACTIVE</span>
+        <span class="footer-pipe">|</span>
+        <span id="footer-time">00:00:00 UTC</span>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- BENCHMARK METRICS MODAL -->
+  <div class="hud-modal" id="modal-metrics">
+    <div class="modal-backdrop"></div>
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <span class="modal-title">BENCHMARK EVALUATION // 35-CLASS TRUTH MATRIX & ROC</span>
+        <button class="modal-close-btn" id="btn-close-metrics">×</button>
+      </div>
+      <div class="modal-body metrics-layout">
+        <div class="metrics-row-kpis" id="metrics-kpis">
+          <div class="kpi-box"><span class="kpi-num" id="kpi-acc">--%</span><span class="kpi-lbl">OVERALL ACCURACY</span></div>
+          <div class="kpi-box"><span class="kpi-num" id="kpi-top3">--%</span><span class="kpi-lbl">TOP-3 ACCURACY</span></div>
+          <div class="kpi-box"><span class="kpi-num" id="kpi-f1">--</span><span class="kpi-lbl">MACRO F1-SCORE</span></div>
+          <div class="kpi-box"><span class="kpi-num" id="kpi-prec">--</span><span class="kpi-lbl">PRECISION</span></div>
+          <div class="kpi-box"><span class="kpi-num" id="kpi-recall">--</span><span class="kpi-lbl">RECALL</span></div>
+        </div>
+        <div class="metrics-visuals-grid">
+          <div class="metric-graph-card">
+            <div class="graph-tag">35x35 NORMALIZED CONFUSION MATRIX (%)</div>
+            <img id="img-confusion-matrix" src="/api/metrics/confusion-matrix" alt="Confusion Matrix">
+          </div>
+          <div class="metric-graph-card">
+            <div class="graph-tag">MULTI-CLASS ROC CHARACTERISTIC CURVE</div>
+            <img id="img-roc-curve" src="/api/metrics/roc-curve" alt="ROC Curve">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTINUOUS LEARNING MODAL -->
+  <div class="hud-modal" id="modal-learn">
+    <div class="modal-backdrop"></div>
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <span class="modal-title">CONTINUOUS LEARNING // PROTOTYPE INGESTION</span>
+        <button class="modal-close-btn" id="btn-close-learn">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-desc">
+          Add any novel ISL hand gesture to local continuous memory (<code>isl_memory.pt</code>). 
+          The 512D deep feature vector will be registered instantly without retraining the backbone.
+        </p>
+        <div class="learn-form">
+          <div class="form-group">
+            <label>GESTURE WORD / IDENTIFIER</label>
+            <input type="text" id="learn-word" placeholder="e.g. NAMASTE, WATER, HELP" class="hud-input">
+          </div>
+          <div class="form-group">
+            <label>CATEGORY</label>
+            <select id="learn-category" class="hud-select">
+              <option value="action">Action / Verb</option>
+              <option value="greeting">Greeting / Courtesy</option>
+              <option value="essential">Essential / Need</option>
+              <option value="question">Question</option>
+              <option value="people">People / Pronoun</option>
+              <option value="place">Place / Object</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>SELECT IMAGE FILE</label>
+            <input type="file" id="learn-file" accept="image/*" class="hud-input">
+          </div>
+          <button class="tactical-btn btn-primary" id="btn-submit-learn">REGISTER INTO LOCAL MEMORY</button>
+          <div class="learn-status" id="learn-status"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
