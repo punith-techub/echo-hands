@@ -65,12 +65,15 @@ def test_webcam_predict_offline_mode_returns_actual_confidence(client):
     """
     When offline (skip_verification=True or no keys), local model predicts
     and actual confidence score is returned (not dummy).
+    Uses allow_empty=False (static benchmark path) so skin-segmentation detects
+    the synthetic hand silhouette regardless of MediaPipe availability.
     """
     frame_b64 = make_synthetic_frame_b64()
     res = client.post("/api/webcam/predict", json={
         "frame_base64": frame_b64,
         "session_id": "offline_session_test",
-        "skip_verification": True
+        "skip_verification": True,
+        "allow_empty": False   # Static path: skin segmentation always detects synthetic blob
     })
 
     assert res.status_code == 200
@@ -117,7 +120,8 @@ def test_webcam_predict_online_rewards_correct_model(client):
         res = client.post("/api/webcam/predict", json={
             "frame_base64": frame_b64,
             "session_id": "online_reward_sess",
-            "skip_verification": False
+            "skip_verification": False,
+            "allow_empty": False   # Static path: skin segmentation detects synthetic blob
         })
 
         assert res.status_code == 200
@@ -167,7 +171,8 @@ def test_webcam_predict_online_punishes_wrong_and_trains_instantly(client):
         res = client.post("/api/webcam/predict", json={
             "frame_base64": frame_b64,
             "session_id": "online_punish_sess",
-            "skip_verification": False
+            "skip_verification": False,
+            "allow_empty": False   # Static path: skin segmentation detects synthetic blob
         })
 
         assert res.status_code == 200
@@ -253,7 +258,8 @@ def test_webcam_predict_multi_region_punishment_targets_exact_sign(client):
         with patch.object(verifier, "verify_sentence", side_effect=mock_verify):
             res = client.post("/api/webcam/predict", json={
                 "frame_base64": multi_b64,
-                "session_id": "multi_region_sess"
+                "session_id": "multi_region_sess",
+                "allow_empty": False   # Static path: skin segmentation detects synthetic blobs
             })
             assert res.status_code == 200
             data = res.json()
@@ -291,7 +297,8 @@ def test_actual_confidence_not_dummy_constant(client):
 
         res = client.post("/api/webcam/predict", json={
             "frame_base64": frame_b64,
-            "session_id": "conf_check_sess"
+            "session_id": "conf_check_sess",
+            "allow_empty": False   # Static path: skin segmentation detects synthetic blob
         })
         assert res.status_code == 200
         data = res.json()

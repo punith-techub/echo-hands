@@ -72,6 +72,8 @@ class AstraVisionApp {
     this.captureTimer = null;
     this.renderLoopId = null;
     this.isProcessingFrame = false;
+    this.processingFrameSince = 0;      // timestamp when lock was acquired
+    this.processingTimeoutMs = 3500;    // force-release lock after 3.5s to prevent deadlock
     this.captureIntervalMs = 100;
     this.fpsCounter = 0;
     this.fpsLastTime = performance.now();
@@ -437,9 +439,29 @@ class AstraVisionApp {
 
   async captureAndPredictFrame() {
     if (!this.isWebcamStreaming || !this.webcamVideo || this.webcamVideo.readyState < 2) return;
-    if (this.isProcessingFrame) return; // Prevent network queue congestion
+
+    // ── FPS counter runs EVERY attempted frame, independent of lock ──
+    this.fpsCounter++;
+    const now = performance.now();
+    if (now - this.fpsLastTime >= 1000) {
+      this.currentFps = Math.round((this.fpsCounter * 1000) / (now - this.fpsLastTime));
+      if (this.camFpsText) this.camFpsText.textContent = `${this.currentFps} FPS`;
+      this.fpsCounter = 0;
+      this.fpsLastTime = now;
+    }
+
+    // ── Deadlock guard: force-release lock if previous call hung > 3.5s ──
+    if (this.isProcessingFrame) {
+      if (now - this.processingFrameSince > this.processingTimeoutMs) {
+        console.warn("[WebcamPredict] Forcing lock release after timeout");
+        this.isProcessingFrame = false;
+      } else {
+        return; // Still within timeout window — skip this tick
+      }
+    }
 
     this.isProcessingFrame = true;
+    this.processingFrameSince = now;
 
     // 1. Ultra-fast GPU / Canvas downscaling to 320x240 for 8x smaller payload & 10x faster cv2
     const targetW = 320;
@@ -456,20 +478,11 @@ class AstraVisionApp {
     snapImage.src = frameBase64;
     this.currentImage = snapImage;
 
-    // 3. True Client-side FPS calculation
-    this.fpsCounter++;
-    const now = performance.now();
-    if (now - this.fpsLastTime >= 1000) {
-      this.currentFps = Math.round((this.fpsCounter * 1000) / (now - this.fpsLastTime));
-      this.camFpsText.textContent = `${this.currentFps} FPS`;
-      this.fpsCounter = 0;
-      this.fpsLastTime = now;
-    }
-
     try {
       const resp = await fetch("/api/webcam/predict", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(4000),   // 4s hard timeout — releases lock even if server hangs
         body: JSON.stringify({
           frame_base64: frameBase64,
           session_id: this.sessionId,
@@ -506,7 +519,11 @@ class AstraVisionApp {
       this.handlePredictionResponse(data, snapImage);
 
     } catch (err) {
-      console.warn("[WebcamPredict] Warning:", err);
+      if (err.name === "AbortError" || err.name === "TimeoutError") {
+        console.warn("[WebcamPredict] Request timed out — skipping frame");
+      } else {
+        console.warn("[WebcamPredict] Warning:", err);
+      }
     } finally {
       this.isProcessingFrame = false;
     }

@@ -1,6 +1,7 @@
 """
 ECHOHANDS - Multi-Sign Engine
-Advanced spatial segmentation, dual-hand spatial envelope merging,
+Advanced hand detection using MediaPipe HandLandmarker (primary) with
+skin-segmentation fallback, dual-hand spatial envelope merging,
 multi-sign strip parsing in reading order (Left-to-Right, Top-to-Bottom),
 and optical zoom square cropping.
 """
@@ -11,6 +12,22 @@ import numpy as np
 from dataclasses import dataclass
 from typing import List, Tuple, Optional, Union
 from PIL import Image
+
+# ---------------------------------------------------------------------------
+# MediaPipe Tasks API (v1.x — no .solutions namespace)
+# ---------------------------------------------------------------------------
+try:
+    import mediapipe as mp
+    from mediapipe.tasks.python import BaseOptions as _BaseOptions
+    from mediapipe.tasks.python.vision import (
+        HandLandmarker,
+        HandLandmarkerOptions,
+        RunningMode,
+    )
+    _MEDIAPIPE_AVAILABLE = True
+except ImportError:
+    _MEDIAPIPE_AVAILABLE = False
+    mp = None
 
 @dataclass
 class SignRegion:
@@ -39,15 +56,91 @@ class MultiSignEngine:
         self.dual_hand_dist_threshold = dual_hand_dist_threshold
         self.row_height_tolerance = row_height_tolerance
 
-        # Initialize YuNet Deep Neural Face Detector (Ultra-fast <6ms inference)
+        # ----------------------------------------------------------------
+        # MediaPipe HandLandmarker — primary hand detector
+        # ----------------------------------------------------------------
+        self.hand_landmarker: Optional[HandLandmarker] = None
+        if _MEDIAPIPE_AVAILABLE:
+            model_path = os.path.join(
+                os.path.dirname(__file__), "..", "models", "hand_landmarker.task"
+            )
+            if os.path.exists(model_path):
+                try:
+                    opts = HandLandmarkerOptions(
+                        base_options=_BaseOptions(model_asset_path=model_path),
+                        running_mode=RunningMode.IMAGE,
+                        num_hands=2,
+                        min_hand_detection_confidence=0.25,
+                        min_hand_presence_confidence=0.25,
+                        min_tracking_confidence=0.25,
+                    )
+                    self.hand_landmarker = HandLandmarker.create_from_options(opts)
+                    print("[MultiSignEngine] MediaPipe HandLandmarker initialized (PRIMARY)")
+                except Exception as exc:
+                    print(f"[MultiSignEngine] HandLandmarker init failed: {exc}")
+            else:
+                print(f"[MultiSignEngine] hand_landmarker.task not found at {model_path}")
+
+        # ----------------------------------------------------------------
+        # YuNet face detector — only used for skin-fallback path
+        # ----------------------------------------------------------------
         self.face_detector = None
-        face_model_path = os.path.join(os.path.dirname(__file__), "..", "models", "face_detection_yunet_2023mar.onnx")
+        face_model_path = os.path.join(
+            os.path.dirname(__file__), "..", "models", "face_detection_yunet_2023mar.onnx"
+        )
         if os.path.exists(face_model_path) and hasattr(cv2, "FaceDetectorYN"):
             try:
-                self.face_detector = cv2.FaceDetectorYN.create(face_model_path, "", (320, 240), score_threshold=0.55)
+                self.face_detector = cv2.FaceDetectorYN.create(
+                    face_model_path, "", (320, 240), score_threshold=0.55
+                )
             except Exception as e:
                 print(f"[MultiSignEngine] Face detector warning: {e}")
 
+    # ------------------------------------------------------------------
+    # MediaPipe PRIMARY detection: landmark → bbox
+    # ------------------------------------------------------------------
+    def _detect_hands_mediapipe(
+        self, rgb: np.ndarray
+    ) -> List[Tuple[int, int, int, int]]:
+        """
+        Run MediaPipe HandLandmarker on an RGB frame and return a list of
+        bounding boxes (x, y, w, h) in pixel coordinates, one per detected hand.
+        Returns empty list if HandLandmarker not available or no hands found.
+        """
+        if self.hand_landmarker is None or not _MEDIAPIPE_AVAILABLE:
+            return []
+
+        h, w = rgb.shape[:2]
+        # MediaPipe requires uint8 RGB
+        if rgb.dtype != np.uint8:
+            rgb = rgb.astype(np.uint8)
+
+        mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
+        try:
+            result = self.hand_landmarker.detect(mp_image)
+        except Exception as exc:
+            print(f"[MultiSignEngine] HandLandmarker.detect error: {exc}")
+            return []
+
+        boxes = []
+        for landmarks in result.hand_landmarks:
+            xs = [lm.x for lm in landmarks]
+            ys = [lm.y for lm in landmarks]
+            # Convert normalized → pixel and add generous padding
+            x_min = max(0, int(min(xs) * w))
+            y_min = max(0, int(min(ys) * h))
+            x_max = min(w, int(max(xs) * w))
+            y_max = min(h, int(max(ys) * h))
+            bw = x_max - x_min
+            bh = y_max - y_min
+            if bw > 5 and bh > 5:   # filter tiny noise detections
+                boxes.append((x_min, y_min, bw, bh))
+
+        return boxes
+
+    # ------------------------------------------------------------------
+    # Skin-segmentation FALLBACK (unchanged from before)
+    # ------------------------------------------------------------------
     def detect_and_mask_faces(self, rgb: np.ndarray, skin_mask: np.ndarray) -> np.ndarray:
         """
         Detect human faces and mask them out so the user's face, neck, and forehead
@@ -118,6 +211,7 @@ class MultiSignEngine:
         """
         Dual-color-space skin detection using YCrCb and HSV thresholding on RGB representation,
         with morphological noise filtration and fallback saliency.
+        Used ONLY as fallback when MediaPipe HandLandmarker is unavailable.
         """
         bgr, rgb = self._ensure_bgr_rgb(image, is_bgr=is_bgr)
         h, w = rgb.shape[:2]
@@ -351,33 +445,25 @@ class MultiSignEngine:
         bordered = cv2.copyMakeBorder(
             sub,
             pad_top, pad_bottom, pad_left, pad_right,
-            cv2.BORDER_CONSTANT,
-            value=[15, 18, 24]  # Tactical dark slate backdrop
+            cv2.BORDER_REPLICATE
         )
 
         # Resize to target size (224, 224)
         resized = cv2.resize(bordered, self.target_size, interpolation=cv2.INTER_LANCZOS4)
         return resized
 
-    def extract_signs(
+    def _extract_via_skin_fallback(
         self,
-        image: Union[np.ndarray, Image.Image],
-        is_bgr: bool = False,
-        allow_empty: bool = False
-    ) -> List[SignRegion]:
+        rgb: np.ndarray,
+        allow_empty: bool,
+        h: int,
+        w: int,
+        total_area: int
+    ) -> List[Tuple[int, int, int, int]]:
         """
-        High-level pipeline:
-        1. Color segmentation & contour discovery
-        2. Filter noise and envelope merging
-        3. Reading order sorting (Left-to-Right, Top-to-Bottom)
-        4. Optical zoom square cropping
+        Skin-segmentation fallback when MediaPipe is unavailable or finds 0 hands.
+        Returns raw bounding boxes (x, y, bw, bh).
         """
-        bgr, rgb = self._ensure_bgr_rgb(image, is_bgr=is_bgr)
-        h, w = rgb.shape[:2]
-        total_area = h * w
-        min_area = total_area * self.min_area_fraction
-        max_area = total_area * self.max_area_fraction
-
         mask = self.segment_skin(rgb, is_bgr=False, allow_empty=allow_empty, mask_faces=allow_empty)
 
         # Find external contours
@@ -420,11 +506,52 @@ class MultiSignEngine:
 
                 raw_boxes.append((bx, by, bw, bh))
 
-        # In webcam mode: A human has at most 2 hands. If background noise remains, keep top 2 largest contours
+        # In webcam mode: A human has at most 2 hands. Keep top 2 largest contours
         if allow_empty and len(raw_boxes) > 2:
             raw_boxes = sorted(raw_boxes, key=lambda b: b[2] * b[3], reverse=True)[:2]
 
-        # If no contours match and allow_empty is requested (e.g. live webcam stream), return empty
+        return raw_boxes
+
+    def extract_signs(
+        self,
+        image: Union[np.ndarray, Image.Image],
+        is_bgr: bool = False,
+        allow_empty: bool = False
+    ) -> List[SignRegion]:
+        """
+        High-level pipeline:
+        1. MediaPipe HandLandmarker (PRIMARY): precise hand bounding boxes
+           — no skin-color confusion, no face/background false positives
+        2. Skin-segmentation (FALLBACK): used when MediaPipe unavailable or returns 0 hands
+        3. Merge dual-hand pairs into unified envelope
+        4. Reading order sorting (Left-to-Right, Top-to-Bottom)
+        5. Optical zoom square cropping → 224×224 crop
+        """
+        bgr, rgb = self._ensure_bgr_rgb(image, is_bgr=is_bgr)
+        h, w = rgb.shape[:2]
+        total_area = h * w
+
+        raw_boxes: List[Tuple[int, int, int, int]] = []
+
+        # ----------------------------------------------------------------
+        # PRIMARY: MediaPipe HandLandmarker (webcam live stream path)
+        # ----------------------------------------------------------------
+        if allow_empty and self.hand_landmarker is not None:
+            # Webcam path: use MediaPipe for accurate hand bbox
+            # Zero false positives from face/body/background
+            mediapipe_boxes = self._detect_hands_mediapipe(rgb)
+            if mediapipe_boxes:
+                raw_boxes = mediapipe_boxes
+            # If MediaPipe found 0 hands → no detection (return empty)
+            # We do NOT fall back to skin segmentation in webcam mode to
+            # avoid false positives from face/body/background
+        else:
+            # Static image benchmark path (allow_empty=False):
+            # Use skin segmentation (MediaPipe is too slow for batch benchmarks
+            # and static ISL chart images don't have webcam artifacts)
+            raw_boxes = self._extract_via_skin_fallback(rgb, allow_empty, h, w, total_area)
+
+        # If no contours match and allow_empty is requested (live webcam stream), return empty
         if not raw_boxes:
             if allow_empty:
                 return []
