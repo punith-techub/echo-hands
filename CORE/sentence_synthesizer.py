@@ -332,3 +332,146 @@ class SentenceSynthesizer:
             "hindi_sentence": hindi_sentence,
             "has_question": "?" in eng_sentence
         }
+
+    def text_to_isl_gloss(self, speech_text: str) -> Dict[str, Any]:
+        """
+        Reverse Compiler for Hearing Person -> 3D Avatar (Phase-3):
+        Transforms spoken English or Hindi text into an ordered sequence of
+        Indian Sign Language (ISL) Gloss tokens and fingerspelling characters
+        to directly drive the 3D WebGL Avatar animation engine.
+        """
+        if not speech_text or not speech_text.strip():
+            return {
+                "input_text": speech_text,
+                "isl_tokens": [],
+                "animation_sequence": [],
+                "detected_language": "unknown"
+            }
+
+        text = speech_text.strip()
+        is_hindi = any(ord(char) >= 0x0900 and ord(char) <= 0x097F for char in text)
+        cleaned = re.sub(r'[^\w\s\u0900-\u097F]', ' ', text).strip()
+        words = [w.strip() for w in cleaned.split() if w.strip()]
+
+        from CORE.sign_knowledge import ALL_SIGNS
+
+        # Direct Hindi to ISL keyword mappings
+        HINDI_TO_ISL = {
+            "नमस्ते": "NAMASTE", "प्रणाम": "NAMASTE", "हैलो": "HELLO", "हेलो": "HELLO",
+            "धन्यवाद": "THANK_YOU", "शुक्रिया": "THANK_YOU",
+            "मदद": "HELP", "सहायता": "HELP",
+            "कृपया": "PLEASE", "माफ़": "SORRY", "माफ": "SORRY", "क्षमा": "SORRY",
+            "हाँ": "YES", "हां": "YES", "नहीं": "NO",
+            "अच्छा": "GOOD", "बुरा": "BAD", "खराब": "BAD",
+            "खाना": "FOOD", "भोजन": "FOOD", "भूख": "FOOD",
+            "पानी": "WATER", "जल": "WATER", "प्यास": "WATER",
+            "डॉक्टर": "DOCTOR", "दवा": "MEDICINE", "दवाई": "MEDICINE", "अस्पताल": "HOSPITAL",
+            "दर्द": "PAIN", "घर": "HOME", "स्कूल": "SCHOOL", "काम": "WORK",
+            "मैं": "I", "मुझे": "I", "हम": "WE", "आप": "YOU", "तुम": "YOU",
+            "चाहिए": "WANT", "चाहता": "WANT", "चाहती": "WANT", "ज़रूरत": "NEED", "जरूरत": "NEED",
+            "कहाँ": "WHERE", "कहा": "WHERE", "क्या": "WHAT", "क्यों": "WHY", "कैसे": "HOW", "कौन": "WHO",
+            "खुश": "HAPPY", "उदास": "SAD", "दोस्त": "FRIEND", "मित्र": "FRIEND", "नाम": "NAME",
+            "समय": "TIME", "बिल्ली": "CAT", "कुत्ता": "DOG"
+        }
+
+        # Common English idioms to standard ISL gloss sequences
+        ENGLISH_PHRASE_GLOSS = {
+            "how are you": ["HOW", "YOU"],
+            "what is your name": ["YOUR", "NAME", "WHAT"],
+            "what is the time": ["TIME", "WHAT"],
+            "where is the hospital": ["HOSPITAL", "WHERE"],
+            "where are you going": ["YOU", "WHERE", "GO"],
+            "please help me": ["PLEASE", "HELP", "ME"],
+            "help me": ["HELP", "ME"],
+            "i need help": ["I", "HELP", "NEED"],
+            "i want food": ["I", "FOOD", "WANT"],
+            "i want to eat": ["I", "FOOD", "EAT"],
+            "i want water": ["I", "WATER", "WANT"],
+            "i want to drink water": ["I", "WATER", "DRINK"],
+            "i want to go home": ["I", "HOME", "GO"],
+            "i need a doctor": ["I", "DOCTOR", "NEED"],
+            "i have pain": ["I", "PAIN", "HAVE"],
+            "thank you": ["THANK_YOU"],
+            "thank you very much": ["THANK_YOU"],
+            "good morning": ["GOOD_MORNING"],
+            "good night": ["GOOD_NIGHT"],
+            "excuse me": ["EXCUSE_ME"],
+            "you are welcome": ["WELCOME"]
+        }
+
+        lower_text = cleaned.lower()
+        isl_tokens: List[str] = []
+
+        # Check multi-word phrase patterns
+        matched_phrase = False
+        for phrase, gloss in ENGLISH_PHRASE_GLOSS.items():
+            if phrase in lower_text:
+                isl_tokens.extend(gloss)
+                matched_phrase = True
+                break
+
+        if not matched_phrase:
+            # Token-by-token parsing with ISL grammar rules (Subject + Object + Verb)
+            subjects = []
+            objects = []
+            verbs = []
+            others = []
+
+            for w in words:
+                up_w = w.upper()
+                token = None
+
+                if is_hindi and w in HINDI_TO_ISL:
+                    token = HINDI_TO_ISL[w]
+                elif up_w in ALL_SIGNS:
+                    token = up_w
+                elif up_w in {"THANK", "THANKS"}:
+                    token = "THANK_YOU"
+                elif up_w in {"HI", "HEY"}:
+                    token = "HELLO"
+
+                if token:
+                    if token in PRONOUNS:
+                        subjects.append(token)
+                    elif token in VERBS:
+                        verbs.append(token)
+                    elif token in OBJECTS or token in {"DOCTOR", "MEDICINE", "HOSPITAL", "PAIN"}:
+                        objects.append(token)
+                    else:
+                        others.append(token)
+                else:
+                    # Ignore minor stop words in English/Hindi
+                    if up_w in {"THE", "A", "AN", "IS", "ARE", "AM", "TO", "DO", "DOES", "HAVE", "HAS", "का", "की", "के", "में", "से", "है", "हैं", "था"}:
+                        continue
+                    # Proper nouns or uncataloged words: fingerspell letter by letter
+                    for ch in up_w:
+                        if ch.isalnum() and ch in ALL_SIGNS:
+                            others.append(ch)
+
+            # Assemble into ISL grammatical order: Subject + Object + Verb + Question/Others
+            isl_tokens = subjects + objects + verbs + others
+
+        # If empty, fallback to fingerspelling first valid alphanumeric characters
+        if not isl_tokens:
+            for ch in cleaned.upper():
+                if ch.isalnum() and ch in ALL_SIGNS:
+                    isl_tokens.append(ch)
+
+        # Build detailed animation metadata
+        anim_sequence = []
+        for t in isl_tokens:
+            is_alpha = len(t) == 1 and t.isalnum()
+            anim_sequence.append({
+                "sign": t,
+                "type": "fingerspell" if is_alpha else "word_gesture",
+                "duration_ms": 700 if is_alpha else 1200
+            })
+
+        return {
+            "input_text": speech_text,
+            "detected_language": "hi-IN" if is_hindi else "en-IN",
+            "isl_tokens": isl_tokens,
+            "animation_sequence": anim_sequence,
+            "token_count": len(isl_tokens)
+        }
+

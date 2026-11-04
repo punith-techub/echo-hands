@@ -206,4 +206,23 @@ def test_feedback_thumbs_down_punish_and_correct(client):
     assert fb_data["corrected_sign"] == "NAMASTE"
     assert "updated_prediction" in fb_data
 
+def test_text_to_isl_endpoint(client):
+    res = client.post("/api/text-to-isl", json={"text": "Please help me"})
+    assert res.status_code == 200
+    data = res.json()
+    assert "HELP" in data["isl_tokens"]
+    assert len(data["animation_sequence"]) > 0
+
+def test_download_extension_endpoint(client):
+    res = client.get("/api/download-extension")
+    assert res.status_code == 200
+    assert res.headers["content-type"] == "application/zip"
+    assert len(res.content) > 1000
+
+def test_simulator_endpoint(client):
+    res = client.get("/simulator")
+    assert res.status_code == 200
+    assert "ASTRA-MEET" in res.text
+
+
 

@@ -1,0 +1,184 @@
+/**
+ * ECHOHANDS Extension Popup Stylesheet
+ */
+
+body {
+  margin: 0;
+  padding: 0;
+  width: 320px;
+  background: #060b10;
+  color: #e0f2f1;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+}
+
+.popup-container {
+  padding: 14px;
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(0, 230, 180, 0.2);
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #00e6b4;
+  box-shadow: 0 0 8px #00e6b4;
+}
+
+.brand-name {
+  font-size: 13px;
+  font-weight: 800;
+  color: #00e6b4;
+  letter-spacing: 1px;
+}
+
+.status-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 3px;
+  background: rgba(0, 230, 180, 0.15);
+  color: #00e6b4;
+  border: 1px solid rgba(0, 230, 180, 0.4);
+}
+
+.status-badge.inactive {
+  background: rgba(255, 171, 0, 0.15);
+  color: #ffab00;
+  border-color: rgba(255, 171, 0, 0.4);
+}
+
+.section-title {
+  font-size: 9px;
+  font-weight: 700;
+  color: #80cbc4;
+  letter-spacing: 1px;
+  margin-bottom: 8px;
+}
+
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.role-card {
+  background: rgba(10, 20, 28, 0.8);
+  border: 1px solid rgba(0, 230, 180, 0.25);
+  border-radius: 6px;
+  padding: 10px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.role-card:hover {
+  border-color: #00e6b4;
+}
+
+.role-card.active {
+  background: rgba(0, 45, 45, 0.6);
+  border-color: #00e6b4;
+  box-shadow: 0 0 12px rgba(0, 230, 180, 0.25);
+}
+
+.role-icon {
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+
+.role-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.role-desc {
+  font-size: 8px;
+  color: #80cbc4;
+  margin-top: 2px;
+}
+
+.config-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 11px;
+  color: #b0bec5;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.config-row select {
+  background: #0c1822;
+  border: 1px solid rgba(0, 230, 180, 0.3);
+  color: #00e6b4;
+  font-size: 11px;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.actions-section {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action-btn {
+  border: none;
+  border-radius: 4px;
+  padding: 9px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-btn.primary {
+  background: #00e6b4;
+  color: #041014;
+}
+
+.action-btn.primary:hover {
+  background: #00ffcc;
+  box-shadow: 0 0 12px rgba(0, 230, 180, 0.4);
+}
+
+.action-btn.secondary {
+  background: rgba(0, 230, 180, 0.1);
+  border: 1px solid rgba(0, 230, 180, 0.3);
+  color: #00e6b4;
+}
+
+.action-btn.secondary:hover {
+  background: rgba(0, 230, 180, 0.25);
+}
+
+.popup-footer {
+  margin-top: 14px;
+  display: flex;
+  justify-content: space-between;
+  font-size: 8px;
+  color: #546e7a;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 8px;
+}

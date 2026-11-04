@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASTRA-MEET // ECHOHANDS Virtual Meeting Simulator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;800&family=Orbitron:wght@600;800&display=swap" rel="stylesheet">
+  <script src="/extension/libs/three.min.js"></script>
+  <script src="/extension/avatar.js"></script>
+  <script src="/extension/isl_engine.js"></script>
+  <script src="/extension/peer_sync.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #04080c;
+      color: #e0f2f1;
+      font-family: "JetBrains Mono", monospace;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      background: rgba(6, 14, 20, 0.95);
+      border-bottom: 1px solid rgba(0, 230, 180, 0.25);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-title {
+      font-family: "Orbitron", sans-serif;
+      font-size: 16px;
+      font-weight: 800;
+      color: #00e6b4;
+      letter-spacing: 1.5px;
+    }
+    .meeting-id-pill {
+      background: rgba(0, 230, 180, 0.12);
+      border: 1px solid rgba(0, 230, 180, 0.3);
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      color: #80cbc4;
+    }
+    .header-links a {
+      color: #00e6b4;
+      text-decoration: none;
+      font-size: 12px;
+      margin-left: 16px;
+      border: 1px solid rgba(0, 230, 180, 0.3);
+      padding: 6px 12px;
+      border-radius: 4px;
+      transition: all 0.2s;
+    }
+    .header-links a:hover {
+      background: #00e6b4;
+      color: #04080c;
+    }
+
+    .meeting-stage {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      padding: 24px;
+      max-width: 1400px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    .participant-card {
+      background: rgba(8, 16, 24, 0.85);
+      border: 1px solid rgba(0, 230, 180, 0.25);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+    }
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 16px;
+      background: rgba(0, 30, 35, 0.6);
+      border-bottom: 1px solid rgba(0, 230, 180, 0.2);
+    }
+    .card-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: #00e6b4;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .role-badge {
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: 3px;
+      background: rgba(0, 230, 180, 0.2);
+      color: #00e6b4;
+      border: 1px solid #00e6b4;
+    }
+
+    .video-viewport {
+      flex: 1;
+      min-height: 380px;
+      background: #020406;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .video-viewport video,
+    .video-viewport canvas {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .status-overlay {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      background: rgba(0, 15, 20, 0.85);
+      border: 1px solid #00e6b4;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #00e6b4;
+    }
+
+    .live-sign-banner {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      background: rgba(0, 10, 15, 0.9);
+      border: 1px solid rgba(0, 230, 180, 0.4);
+      padding: 8px 12px;
+      border-radius: 6px;
+      backdrop-filter: blur(8px);
+    }
+    .banner-label {
+      font-size: 9px;
+      color: #80cbc4;
+      margin-bottom: 2px;
+    }
+    .banner-text {
+      font-size: 13px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+
+    .card-controls {
+      padding: 12px 16px;
+      background: rgba(4, 10, 16, 0.95);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      border-top: 1px solid rgba(0, 230, 180, 0.15);
+    }
+    .btn-action {
+      background: rgba(0, 230, 180, 0.1);
+      border: 1px solid rgba(0, 230, 180, 0.35);
+      color: #00e6b4;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-action:hover {
+      background: #00e6b4;
+      color: #04080c;
+    }
+    .btn-action.active {
+      background: #00e6b4;
+      color: #04080c;
+    }
+
+    /* Subtitles Bar */
+    .shared-subtitles-bar {
+      margin: 0 24px 16px 24px;
+      background: rgba(2, 6, 10, 0.95);
+      border: 1px solid rgba(0, 230, 180, 0.3);
+      border-radius: 8px;
+      padding: 12px 18px;
+    }
+    .subtitles-title {
+      font-size: 10px;
+      font-weight: 700;
+      color: #00e6b4;
+      margin-bottom: 4px;
+      letter-spacing: 1px;
+    }
+    .subtitles-en {
+      font-size: 15px;
+      font-weight: 700;
+      color: #ffffff;
+    }
+    .subtitles-hi {
+      font-size: 13px;
+      color: #80cbc4;
+      margin-top: 4px;
+    }
+
+    /* Meeting Dock */
+    .meeting-dock {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      padding: 16px;
+      background: #020609;
+      border-top: 1px solid rgba(0, 230, 180, 0.2);
+    }
+    .dock-circle-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .dock-circle-btn:hover {
+      background: rgba(0, 230, 180, 0.25);
+      border-color: #00e6b4;
+      color: #00e6b4;
+    }
+    .dock-circle-btn.danger {
+      background: #e53935;
+      border-color: #e53935;
+    }
+
+    @media (max-width: 900px) {
+      .meeting-stage { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span style="color:#00e6b4; font-size:20px;">⚡</span>
+      <span class="brand-title">ASTRA-MEET // ECHOHANDS 5.0</span>
+      <span class="meeting-id-pill">ROOM: astra-call-live</span>
+    </div>
+    <div class="header-links">
+      <a href="/" target="_blank">🏠 ECHOHANDS HOME</a>
+      <a href="/api/download-extension" target="_blank" style="background:#00e6b4; color:#04080c; font-weight:700;">📥 DOWNLOAD EXTENSION (.ZIP)</a>
+    </div>
+  </header>
+
+  <div class="meeting-stage">
+    <!-- Participant 1: Deaf / Mute (Signs ISL) -->
+    <div class="participant-card">
+      <div class="card-header">
+        <span class="card-title">🤟 PARTICIPANT 1 (DEAF / MUTE)</span>
+        <span class="role-badge">ISL SIGNER</span>
+      </div>
+      <div class="video-viewport">
+        <video id="p1-cam" autoplay playsinline muted></video>
+        <div class="status-overlay" id="p1-badge">CAMERA ACTIVE // SIGN HERE</div>
+        <div class="live-sign-banner">
+          <div class="banner-label">LAST DETECTED SIGN & TRANSLATION</div>
+          <div class="banner-text" id="p1-sign-text">Ready for gestures (Namaste, Help, Water, Food, Doctor)...</div>
+        </div>
+      </div>
+      <div class="card-controls">
+        <button class="btn-action" id="btn-p1-namaste">Sign: NAMASTE</button>
+        <button class="btn-action" id="btn-p1-help">Sign: HELP</button>
+        <button class="btn-action" id="btn-p1-food">Sign: FOOD</button>
+        <button class="btn-action" id="btn-p1-water">Sign: WATER</button>
+        <button class="btn-action" id="btn-p1-doctor">Sign: DOCTOR</button>
+        <button class="btn-action" id="btn-p1-speak" style="background:#00e6b4; color:#04080c;">🔊 SPEAK AS VOICE</button>
+      </div>
+    </div>
+
+    <!-- Participant 2: Hearing User (Speaks Voice & Sees 3D Live Sign Avatar) -->
+    <div class="participant-card">
+      <div class="card-header">
+        <span class="card-title">🎙️ PARTICIPANT 2 (HEARING USER)</span>
+        <span class="role-badge">LIVE 3D ISL AVATAR</span>
+      </div>
+      <div class="video-viewport" id="p2-avatar-wrap">
+        <div class="status-overlay" id="p2-badge">3D AVATAR ONLINE // READY</div>
+        <div class="live-sign-banner">
+          <div class="banner-label">HEARING USER VOICE TRANSCRIPTION</div>
+          <div class="banner-text" id="p2-voice-text">Speak using microphone or click quick voice triggers below...</div>
+        </div>
+      </div>
+      <div class="card-controls">
+        <button class="btn-action" id="btn-p2-mic">🎙️ TOGGLE LIVE MIC</button>
+        <button class="btn-action" id="btn-p2-say-help">Say: "Do you need help?"</button>
+        <button class="btn-action" id="btn-p2-say-food">Say: "I want food"</button>
+        <button class="btn-action" id="btn-p2-say-namaste">Say: "Namaste greetings"</button>
+        <button class="btn-action" id="btn-p2-say-rahul">Fingerspell: "Rahul"</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shared Meeting Subtitles Bar -->
+  <div class="shared-subtitles-bar">
+    <div class="subtitles-title">ASTRA-MEET REAL-TIME ACCESSIBILITY SUBTITLES</div>
+    <div class="subtitles-en" id="meeting-sub-en">Meeting session initialized. When Deaf user signs, voice will be heard. When Hearing user speaks, 3D avatar signs!</div>
+    <div class="subtitles-hi" id="meeting-sub-hi">सत्र सक्रिय है। जब मूक-बधिर साथी इशारा करेंगे, तो आवाज़ सुनाई देगी। जब सामान्य व्यक्ति बोलेंगे, तो 3D अवतार इशारा करेगा।</div>
+  </div>
+
+  <!-- Bottom Dock -->
+  <div class="meeting-dock">
+    <button class="dock-circle-btn" id="dock-cam" title="Toggle Camera">📹</button>
+    <button class="dock-circle-btn" id="dock-mic" title="Toggle Mic">🎙️</button>
+    <button class="dock-circle-btn" id="dock-sub" title="Captions On/Off">💬</button>
+    <button class="dock-circle-btn danger" onclick="alert('Meeting ended. You can refresh anytime!')" title="Leave Call">📞</button>
+  </div>
+
+  <script>
+    // Initialize Simulator Logic
+    const avatarWrap = document.getElementById("p2-avatar-wrap");
+    const avatar = new ISL3DAvatar(avatarWrap);
+    const engine = new ISLEngine();
+    const peer = new PeerSyncManager("astra-call-live");
+
+    // Camera Init
+    navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      .then(stream => {
+        document.getElementById("p1-cam").srcObject = stream;
+      })
+      .catch(e => {
+        console.log("Webcam not available in this tab, using simulation mode.");
+      });
+
+    // Subtitle Updates
+    function updateSubs(en, hi) {
+      document.getElementById("meeting-sub-en").textContent = en || "--";
+      document.getElementById("meeting-sub-hi").textContent = hi || "--";
+    }
+
+    // P1 (Deaf Signer) Sign Actions
+    function performSign(sign) {
+      const res = engine.synthesizeISLTokens([sign]);
+      document.getElementById("p1-sign-text").textContent = `Signed: ${sign} -> "${res.english}"`;
+      updateSubs(res.english, res.hindi);
+
+      // Speak aloud in real voice so hearing partner hears it!
+      engine.speakSentence(res.english, "en-IN");
+
+      // Peer broadcast
+      peer.broadcastSign({
+        tokens: [sign],
+        english_sentence: res.english,
+        hindi_sentence: res.hindi
+      });
+    }
+
+    document.getElementById("btn-p1-namaste").onclick = () => performSign("NAMASTE");
+    document.getElementById("btn-p1-help").onclick = () => performSign("HELP");
+    document.getElementById("btn-p1-food").onclick = () => performSign("FOOD");
+    document.getElementById("btn-p1-water").onclick = () => performSign("WATER");
+    document.getElementById("btn-p1-doctor").onclick = () => performSign("DOCTOR");
+    document.getElementById("btn-p1-speak").onclick = () => {
+      const txt = document.getElementById("meeting-sub-en").textContent;
+      engine.speakSentence(txt, "en-IN");
+    };
+
+    // P2 (Hearing User) Voice Actions -> Animate 3D Avatar
+    function performVoice(spokenText) {
+      document.getElementById("p2-voice-text").textContent = `Spoken: "${spokenText}"`;
+      const islTokens = engine.compileTextToISL(spokenText);
+      updateSubs(spokenText, `ISL Tokens: [${islTokens.join(", ")}]`);
+
+      // Animate 3D avatar
+      avatar.playSequence(islTokens, (token) => {
+        document.getElementById("p2-badge").textContent = `AVATAR SIGNING: ${token}`;
+      }, () => {
+        document.getElementById("p2-badge").textContent = `3D AVATAR ONLINE // READY`;
+      });
+
+      peer.broadcastVoice({
+        text: spokenText,
+        isl_tokens: islTokens,
+        language: "en-IN"
+      });
+    }
+
+    document.getElementById("btn-p2-say-help").onclick = () => performVoice("Do you need help?");
+    document.getElementById("btn-p2-say-food").onclick = () => performVoice("I want food");
+    document.getElementById("btn-p2-say-namaste").onclick = () => performVoice("Namaste greetings");
+    document.getElementById("btn-p2-say-rahul").onclick = () => performVoice("Rahul");
+
+    // Live Mic STT
+    let isMicActive = false;
+    engine.onVoiceTranscript = (text) => {
+      performVoice(text);
+    };
+
+    document.getElementById("btn-p2-mic").onclick = () => {
+      const btn = document.getElementById("btn-p2-mic");
+      if (isMicActive) {
+        engine.stopListening();
+        isMicActive = false;
+        btn.textContent = "🎙️ TOGGLE LIVE MIC";
+        btn.classList.remove("active");
+      } else {
+        engine.startListening("en-IN");
+        isMicActive = true;
+        btn.textContent = "🎙️ MIC ACTIVE (SPEAK NOW)";
+        btn.classList.add("active");
+      }
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ECHOHANDS Settings</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="popup-container">
+    <div class="popup-header">
+      <div class="brand">
+        <span class="logo-dot"></span>
+        <span class="brand-name">ECHOHANDS 5.0</span>
+      </div>
+      <span class="status-badge" id="meeting-badge">DETECTING...</span>
+    </div>
+
+    <div class="section-title">COMMUNICATION ROLE</div>
+    <div class="role-grid">
+      <button class="role-card active" id="role-signer">
+        <span class="role-icon">🤟</span>
+        <span class="role-title">DEAF / MUTE</span>
+        <span class="role-desc">ISL Gesture to Real Voice</span>
+      </button>
+      <button class="role-card" id="role-speaker">
+        <span class="role-icon">🎙️</span>
+        <span class="role-title">HEARING</span>
+        <span class="role-desc">Voice to 3D Live Sign Avatar</span>
+      </button>
+    </div>
+
+    <div class="section-title">HUD & SPEECH CONFIG</div>
+    <div class="config-row">
+      <label>Voice Language</label>
+      <select id="lang-select">
+        <option value="en-IN">Indian English (en-IN)</option>
+        <option value="hi-IN">Hindi (hi-IN)</option>
+      </select>
+    </div>
+
+    <div class="config-row">
+      <label>Auto-Voice Synthesizer</label>
+      <input type="checkbox" id="auto-voice-toggle" checked>
+    </div>
+
+    <div class="config-row">
+      <label>3D Avatar HUD</label>
+      <input type="checkbox" id="avatar-toggle" checked>
+    </div>
+
+    <div class="actions-section">
+      <button class="action-btn primary" id="btn-toggle-hud">TOGGLE HUD OVERLAY</button>
+      <button class="action-btn secondary" id="btn-open-simulator">🌐 OPEN ASTRA-MEET SIMULATOR</button>
+    </div>
+
+    <div class="popup-footer">
+      <span>ECHOHANDS ISL // MANIFEST V3</span>
+      <span id="version-tag">v5.0-PHASE3</span>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>

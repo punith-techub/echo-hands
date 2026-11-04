@@ -68,7 +68,11 @@ app.add_middleware(
 # Mount static files directory
 os.makedirs(STATIC_DIR, exist_ok=True)
 os.makedirs(DATA_DIR, exist_ok=True)
+EXTENSION_DIR = os.path.join(BASE_DIR, "extension")
+os.makedirs(EXTENSION_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+app.mount("/extension", StaticFiles(directory=EXTENSION_DIR), name="extension")
+
 
 # Initialize Singletons
 sign_engine = MultiSignEngine(target_size=(224, 224))
@@ -585,3 +589,55 @@ async def user_feedback(req: FeedbackRequest):
             "updated_sentence": updated_sentence,
             "updated_speech": updated_speech
         }
+
+class TextToIslRequest(BaseModel):
+    text: str
+    lang: Optional[str] = "auto"
+
+@app.post("/api/text-to-isl")
+async def compile_text_to_isl(req: TextToIslRequest):
+    """
+    Phase-3 Reverse Compiler API:
+    Translates spoken English / Hindi into ISL Gloss and 3D Avatar animation sequence.
+    """
+    if not req.text or not req.text.strip():
+        raise HTTPException(status_code=400, detail="Text field cannot be empty.")
+    result = synthesizer.text_to_isl_gloss(req.text)
+    return result
+
+@app.get("/api/download-extension")
+async def download_extension_zip():
+    """
+    Packages the Manifest V3 Chrome Extension into a clean zip archive and streams it.
+    """
+    import zipfile
+    ext_dir = os.path.join(BASE_DIR, "extension")
+    if not os.path.exists(ext_dir):
+        raise HTTPException(status_code=404, detail="Extension directory not found.")
+
+    mem_zip = io.BytesIO()
+    with zipfile.ZipFile(mem_zip, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for root, dirs, files in os.walk(ext_dir):
+            for file in files:
+                abs_path = os.path.join(root, file)
+                rel_path = os.path.relpath(abs_path, ext_dir)
+                zf.write(abs_path, arcname=rel_path)
+    mem_zip.seek(0)
+
+    from fastapi.responses import StreamingResponse
+    return StreamingResponse(
+        mem_zip,
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=echohands-isl-extension.zip"}
+    )
+
+@app.get("/simulator", response_class=HTMLResponse)
+@app.get("/meeting", response_class=HTMLResponse)
+async def serve_simulator():
+    """Serve ASTRA-MEET live dual-meeting simulator."""
+    sim_file = os.path.join(STATIC_DIR, "simulator.html")
+    if os.path.exists(sim_file):
+        with open(sim_file, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse("<h1>ASTRA-MEET Simulator initializing...</h1>")
+

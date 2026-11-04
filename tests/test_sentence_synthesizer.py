@@ -55,3 +55,20 @@ def test_empty_tokens(synthesizer):
     assert res["english_sentence"] == ""
     assert res["hindi_sentence"] == ""
     assert res["aggregated_tokens"] == []
+
+def test_text_to_isl_gloss_english(synthesizer):
+    res = synthesizer.text_to_isl_gloss("Please help me")
+    assert "HELP" in res["isl_tokens"]
+    assert res["detected_language"] == "en-IN"
+    assert len(res["animation_sequence"]) > 0
+
+def test_text_to_isl_gloss_hindi(synthesizer):
+    res = synthesizer.text_to_isl_gloss("नमस्ते मुझे पानी चाहिए")
+    assert "WATER" in res["isl_tokens"]
+    assert res["detected_language"] == "hi-IN"
+
+def test_text_to_isl_gloss_fingerspelling(synthesizer):
+    res = synthesizer.text_to_isl_gloss("Rahul")
+    assert res["isl_tokens"] == ["R", "A", "H", "U", "L"]
+    assert all(item["type"] == "fingerspell" for item in res["animation_sequence"])
+

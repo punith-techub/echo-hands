@@ -40,6 +40,11 @@ htmlcov/
 *.swo
 *~
 
+# Vercel build & deployment
+.vercel/
+*.zip
+
+
 # Operating System artifacts
 .DS_Store
 Thumbs.db

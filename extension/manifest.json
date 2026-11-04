@@ -1,0 +1,75 @@
+{
+  "manifest_version": 3,
+  "name": "ECHOHANDS // Real-Time ISL Meeting Translator",
+  "version": "1.0.0",
+  "description": "Tactical real-time Indian Sign Language (ISL) to voice and live 3D animated signs for Google Meet, Zoom, Teams, and video calls.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "ECHOHANDS Meeting HUD Settings",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "permissions": [
+    "storage",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "*://meet.google.com/*",
+    "*://*.zoom.us/*",
+    "*://teams.microsoft.com/*",
+    "*://teams.live.com/*",
+    "*://meet.jit.si/*",
+    "*://*.vercel.app/*",
+    "*://localhost/*",
+    "*://127.0.0.1/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "*://meet.google.com/*",
+        "*://*.zoom.us/*",
+        "*://teams.microsoft.com/*",
+        "*://teams.live.com/*",
+        "*://meet.jit.si/*",
+        "*://*.vercel.app/*",
+        "*://localhost/*",
+        "*://127.0.0.1/*"
+      ],
+      "js": [
+        "libs/three.min.js",
+        "avatar.js",
+        "isl_engine.js",
+        "peer_sync.js",
+        "content.js"
+      ],
+      "css": [
+        "hud.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "libs/*",
+        "icons/*",
+        "hud.css"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
+}
