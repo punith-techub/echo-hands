@@ -79,6 +79,15 @@ class OnlineLearner:
         norm_wrong = wrong_sign.strip().upper()
         norm_correct = correct_sign.strip().upper()
 
+        # Guard against invalid, multi-word, or blank signs
+        if not is_alphanumeric(norm_correct) and not is_word(norm_correct):
+            return {
+                "status": "ignored",
+                "reason": f"'{norm_correct}' is not a valid recognized ISL vocabulary token.",
+                "correct_sign": norm_correct,
+                "wrong_sign": norm_wrong
+            }
+
         # 1. Preprocess crop into tensor and extract current features
         crop_float = crop_rgb.astype(np.float32) / 255.0
         mean = np.array([0.485, 0.456, 0.406], dtype=np.float32)
@@ -113,51 +122,34 @@ class OnlineLearner:
             correct_idx = CLASS_TO_INDEX[norm_correct]
             wrong_idx = CLASS_TO_INDEX.get(norm_wrong, None)
 
-            # Build replay batch:
-            replay_feats = [norm_emb.clone()]
-            replay_labels = [correct_idx]
-            replay_wrongs = [wrong_idx]
-
-            for past in self.experience_buffer[-20:]:
-                past_correct = past["correct_sign"]
-                if is_alphanumeric(past_correct):
-                    replay_feats.append(past["norm_embedding"].clone())
-                    replay_labels.append(CLASS_TO_INDEX[past_correct])
-                    past_w = past.get("wrong_sign")
-                    replay_wrongs.append(CLASS_TO_INDEX.get(past_w, None) if past_w else None)
-
-            # Train classifier head strictly (Linear layer without batchnorm side effects)
+            # Safe fine-tuning with conservative learning rate & heavy anchor regularization
             self.model.eval()
             optimizer = torch.optim.AdamW(
                 self.model.classifier.parameters(),
-                lr=0.008,
-                weight_decay=1e-4
+                lr=0.0003,
+                weight_decay=1e-3
             )
 
             anchor_labels = torch.arange(len(ALPHANUMERIC_CLASSES))
 
-            for step in range(25):
+            for step in range(3):
                 optimizer.zero_grad()
                 total_loss = 0.0
 
-                # Train on user experiences with feature jitter
-                for feat, lbl, wrg in zip(replay_feats, replay_labels, replay_wrongs):
-                    noise = torch.randn_like(feat) * 0.015
-                    jittered = (feat + noise) * 20.0
-                    logits = self.model.classifier(jittered)
+                # Train on current feedback crop with mild margin penalty
+                logits = self.model.classifier(norm_emb * 20.0)
+                ce_loss = F.cross_entropy(logits, torch.tensor([correct_idx]))
+                punish_loss = 0.0
+                if wrong_idx is not None and wrong_idx != correct_idx:
+                    margin_diff = logits[0, wrong_idx] - logits[0, correct_idx] + 0.5
+                    punish_loss = 0.5 * torch.relu(margin_diff)
 
-                    ce_loss = F.cross_entropy(logits, torch.tensor([lbl]))
-                    punish_loss = 0.0
-                    if wrg is not None and wrg != lbl:
-                        margin_diff = logits[0, wrg] - logits[0, lbl] + 3.0
-                        punish_loss = 3.0 * torch.relu(margin_diff)
+                total_loss += ce_loss + punish_loss
 
-                    total_loss += ce_loss + punish_loss
-
-                # Regularize with clean class anchors to prevent drift
+                # Strong anchor regularization prevents catastrophic forgetting & class collapse
                 if self.anchors is not None:
                     anchor_logits = self.model.classifier(self.anchors * 20.0)
-                    loss_anchors = 0.8 * F.cross_entropy(anchor_logits, anchor_labels)
+                    loss_anchors = 2.0 * F.cross_entropy(anchor_logits, anchor_labels)
                     total_loss += loss_anchors
 
                 total_loss.backward()
@@ -169,7 +161,6 @@ class OnlineLearner:
             # Save updated weights
             try:
                 torch.save(self.model.state_dict(), MODEL_PATH)
-                print(f"[OnlineLearner] Successfully trained & saved alphanumeric model weights for '{norm_correct}'.")
             except Exception as e:
                 print(f"[OnlineLearner] Warning: Failed to save model weights: {e}")
 
@@ -178,7 +169,7 @@ class OnlineLearner:
             wrong_word=norm_wrong,
             correct_word=norm_correct,
             feature_vector=feature_np,
-            punishment_factor=0.75
+            punishment_factor=0.30
         )
 
         # Mark correct sign in prototype memory as explicitly user-taught

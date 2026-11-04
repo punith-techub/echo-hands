@@ -39,6 +39,14 @@
           <span class="telemetry-val text-cyan">DUAL-BRAIN HYBRID</span>
         </div>
         <div class="telemetry-pill">
+          <span class="telemetry-label">GPU ACCEL:</span>
+          <span class="telemetry-val text-cyan" id="gpu-telemetry">WebGL / WebGPU</span>
+        </div>
+        <div class="telemetry-pill">
+          <span class="telemetry-label">AI ARBITER:</span>
+          <span class="telemetry-val text-green" id="telemetry-verifier">ACTIVE</span>
+        </div>
+        <div class="telemetry-pill">
           <span class="telemetry-label">LATENCY:</span>
           <span class="telemetry-val text-amber" id="telemetry-latency">-- ms</span>
         </div>
@@ -66,22 +74,72 @@
           <div class="panel-header">
             <span class="corner-bracket top-left"></span>
             <span class="corner-bracket top-right"></span>
-            <span class="panel-tag">INGESTION // TARGET RADAR</span>
+            <span class="panel-tag">LIVE WEBCAM // GESTURE RADAR</span>
           </div>
 
-          <!-- Dropzone -->
-          <div class="tactical-dropzone" id="dropzone">
-            <input type="file" id="file-input" accept="image/*" class="hidden-input">
-            <div class="reticle-frame">
-              <div class="reticle-crosshair"></div>
-              <div class="reticle-circle"></div>
-              <div class="dropzone-text">
-                <span class="drop-icon">⊕</span>
-                <span class="drop-main">DROP IMAGE OR CLICK TO SCAN</span>
-                <span class="drop-sub">Single Gesture, Dual-Hand, or Multi-Sign Strip</span>
+          <!-- Live Webcam Feed & Controls -->
+          <div class="webcam-viewport-card" id="webcam-viewport-card">
+            <div class="webcam-hud-frame">
+              <video id="webcam-video" autoplay playsinline muted></video>
+              <canvas id="webcam-hud-canvas"></canvas>
+              <div class="webcam-placeholder" id="webcam-placeholder">
+                <div class="webcam-reticle-circle"></div>
+                <span class="webcam-placeholder-icon">📷</span>
+                <span class="webcam-placeholder-text">WEBCAM STANDBY</span>
+                <span class="webcam-placeholder-sub">Click START to activate live hand gesture tracking</span>
+              </div>
+              <div class="webcam-laser" id="webcam-laser"></div>
+              <div class="webcam-status-overlay" id="webcam-status-overlay">
+                <span class="cam-status-dot offline" id="cam-status-dot"></span>
+                <span class="cam-status-text" id="cam-status-text">CAMERA OFFLINE</span>
+                <span class="cam-fps" id="cam-fps-text">0 FPS</span>
               </div>
             </div>
-            <div class="scanning-laser" id="scanning-laser"></div>
+
+            <!-- Big Start/Stop Button -->
+            <div class="webcam-action-buttons">
+              <button class="tactical-btn btn-webcam-toggle" id="btn-toggle-webcam">
+                <span class="btn-icon">▶</span> START LIVE WEBCAM
+              </button>
+              <button class="tactical-btn btn-sm btn-ghost" id="btn-snap-frame" title="Capture Single Frame">
+                <span class="btn-icon">⚡</span> SNAP
+              </button>
+            </div>
+
+            <!-- Camera Options Grid -->
+            <div class="webcam-options-grid">
+              <div class="ctrl-group">
+                <label>CAMERA SOURCE</label>
+                <select id="camera-select" class="hud-select">
+                  <option value="">Default User Camera</option>
+                </select>
+              </div>
+              <div class="ctrl-group">
+                <label>INFERENCE INTERVAL: <span id="val-cam-interval">100ms (~10 FPS)</span></label>
+                <input type="range" id="cam-interval-slider" min="50" max="600" step="25" value="100" class="hud-slider">
+              </div>
+            </div>
+
+            <!-- AI Verifier Telemetry Card -->
+            <div class="verifier-telemetry-badge" id="verifier-telemetry-badge">
+              <div class="vt-row">
+                <span class="vt-key">AI ARBITER:</span>
+                <span class="vt-val text-green" id="vt-status">CONNECTING...</span>
+              </div>
+              <div class="vt-row">
+                <span class="vt-key">ACTIVE KEY:</span>
+                <span class="vt-val text-cyan" id="vt-active-key">--</span>
+              </div>
+              <div class="vt-row">
+                <span class="vt-key">FALLBACK:</span>
+                <span class="vt-val" id="vt-fallback-chain">Groq → Gemini → Offline</span>
+              </div>
+              <div class="vt-actions">
+                <button class="tactical-btn btn-xs btn-ghost" id="btn-reset-session" title="Reset Session Context">
+                  RESET CONTEXT (ZERO LOSS)
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Quick-Target Sample Chips -->
@@ -156,6 +214,37 @@
               <div class="viewport-placeholder" id="gradcam-placeholder">
                 <span>GRAD-CAM ACTIVATION AWAITING TARGET</span>
               </div>
+            </div>
+          </div>
+
+          <!-- REAL-TIME TACTICAL LIVE CAPTION BOX -->
+          <div class="tactical-caption-box" id="tactical-caption-box">
+            <div class="caption-head">
+              <div class="caption-title-wrap">
+                <span class="caption-pulse-dot pulse-cyan"></span>
+                <span class="caption-title">LIVE NEURAL CAPTION [REAL-TIME STREAM]</span>
+              </div>
+              <div class="caption-meta-badges">
+                <span class="caption-badge badge-conf" id="caption-conf-badge">ACTUAL CONF: --%</span>
+                <span class="caption-badge badge-verif" id="caption-verif-badge">LOCAL MODEL</span>
+              </div>
+            </div>
+
+            <div class="caption-body">
+              <div class="caption-line-en" id="caption-en-text">
+                <span class="caption-cursor">▌</span> Awaiting live gesture actions...
+              </div>
+              <div class="caption-line-hi" id="caption-hi-text">
+                लाइव सांकेतिक भाषा इशारे शुरू करें...
+              </div>
+            </div>
+
+            <div class="caption-token-trail-wrap">
+              <span class="trail-lbl">GESTURE TRAIL:</span>
+              <div class="caption-token-trail" id="caption-token-trail">
+                <span class="trail-token-empty">No gestures detected yet</span>
+              </div>
+              <div class="caption-feedback-indicator" id="caption-feedback-indicator"></div>
             </div>
           </div>
 

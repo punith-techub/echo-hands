@@ -187,19 +187,23 @@ class DualBrainVisionEngine:
         self,
         rgb_crop: np.ndarray,
         is_dual_hand: bool = False,
-        preferred_brain: Optional[str] = None
+        preferred_brain: Optional[str] = None,
+        include_gradcam: bool = False
     ) -> Dict[str, Any]:
         """
         Dual-Brain inference on a single 224x224 RGB hand sign crop:
         1. Alphanumeric 35-class classification with logits and margin
         2. Embedding prototype vector matching across 50+ ISL words
-        3. Strategic arbitration and Grad-CAM generation
+        3. Strategic arbitration and Grad-CAM generation (on-demand for high FPS)
         """
         tensor = self.preprocess_tensor(rgb_crop)
-        tensor.requires_grad = True
+        if include_gradcam:
+            tensor.requires_grad = True
+            logits, embedding = self.model(tensor)
+        else:
+            with torch.no_grad():
+                logits, embedding = self.model(tensor)
 
-        # Forward pass
-        logits, embedding = self.model(tensor)
         probs = F.softmax(logits, dim=1).detach().cpu().numpy()[0]
 
         # Top 3 Alphanumeric classes
@@ -220,7 +224,7 @@ class DualBrainVisionEngine:
         # If user explicitly selected mode, honor it
         if preferred_brain == "word":
             predicted_sign = best_sign
-            sign_type = "alphanumeric" if is_alphanumeric(predicted_sign) else "word"
+            sign_type = "word"
             confidence = float(np.clip(best_sign_sim, 0.0, 1.0))
             chosen_brain = "Brain-2 (Prototype Vector Memory)"
         elif preferred_brain == "alphanumeric":
@@ -229,43 +233,60 @@ class DualBrainVisionEngine:
             confidence = top1_prob
             chosen_brain = "Brain-1 (Alphanumeric CNN)"
         else:
-            # AUTO MODE:
-            # 1. Prioritize user-taught continuous learning prototypes
-            if is_user_taught and best_sign_sim >= 0.42:
-                predicted_sign = best_sign
-                sign_type = "alphanumeric" if is_alphanumeric(predicted_sign) else "word"
-                confidence = float(np.clip(best_sign_sim, 0.0, 1.0))
-                chosen_brain = "Brain-2 (User-Trained Memory)"
-            # 2. Both brains agree on the exact sign
-            elif best_sign == top1_cls:
+            # AUTO MODE (Robust Multi-Brain Arbitration):
+            # 1. Both brains agree on the exact sign -> Consensus!
+            if best_sign == top1_cls:
                 predicted_sign = top1_cls
                 sign_type = "alphanumeric" if is_alphanumeric(predicted_sign) else "word"
                 confidence = float(max(top1_prob, best_sign_sim))
                 chosen_brain = "Dual-Brain Consensus (CNN + Prototype)"
-            # 3. High-confidence prototype match or dual-hand word
-            elif (is_dual_hand and best_sign_sim > 0.50) or (best_sign_sim >= 0.70) or (top1_prob < 0.65 and best_sign_sim >= 0.55):
+
+            # 2. High-confidence Word Prototype (e.g. NAMASTE, HELP, WATER, FOOD)
+            elif (is_dual_hand and best_sign_sim >= 0.60) or (best_sign_sim >= 0.75 and best_sign_sim > top1_prob):
                 predicted_sign = best_sign
                 sign_type = "alphanumeric" if is_alphanumeric(predicted_sign) else "word"
                 confidence = float(np.clip(best_sign_sim, 0.0, 1.0))
                 chosen_brain = "Brain-2 (Prototype Vector Memory)"
-            # 4. Standard Alphanumeric CNN
-            else:
+
+            # 3. Strong Alphanumeric CNN confidence -> Trust CNN
+            elif top1_prob >= 0.65 and top1_prob > best_sign_sim:
                 predicted_sign = top1_cls
                 sign_type = "alphanumeric"
                 confidence = top1_prob
                 chosen_brain = "Brain-1 (Alphanumeric CNN)"
 
-        # Generate Grad-CAM for the top prediction
-        try:
-            if chosen_brain == "Brain-2 (Prototype Vector Memory)" and predicted_sign in self.memory.prototypes:
-                cent = self.memory.prototypes[predicted_sign]["centroid"]
-                cam_map = self.grad_cam.generate_heatmap(tensor, prototype_centroid=cent)
+            # 4. High-confidence user-taught memory (strict threshold >= 0.82 to avoid drift)
+            elif is_user_taught and best_sign_sim >= 0.82:
+                predicted_sign = best_sign
+                sign_type = "alphanumeric" if is_alphanumeric(predicted_sign) else "word"
+                confidence = float(np.clip(best_sign_sim, 0.0, 1.0))
+                chosen_brain = "Brain-2 (User-Trained Memory)"
+
+            # 5. Default: pick the brain with higher calibrated activation
+            elif top1_prob >= best_sign_sim:
+                predicted_sign = top1_cls
+                sign_type = "alphanumeric"
+                confidence = top1_prob
+                chosen_brain = "Brain-1 (Alphanumeric CNN)"
             else:
-                cam_map = self.grad_cam.generate_heatmap(tensor, target_class_idx=top1_idx)
-            gradcam_b64 = self.generate_gradcam_overlay(rgb_crop, cam_map)
-        except Exception as e:
-            print(f"[VisionEngine] Grad-CAM warning: {e}")
-            gradcam_b64 = ""
+                predicted_sign = best_sign
+                sign_type = "alphanumeric" if is_alphanumeric(predicted_sign) else "word"
+                confidence = float(np.clip(best_sign_sim, 0.0, 1.0))
+                chosen_brain = "Brain-2 (Prototype Vector Memory)"
+
+        # Generate Grad-CAM for the top prediction on-demand
+        gradcam_b64 = ""
+        if include_gradcam:
+            try:
+                if chosen_brain == "Brain-2 (Prototype Vector Memory)" and predicted_sign in self.memory.prototypes:
+                    cent = self.memory.prototypes[predicted_sign]["centroid"]
+                    cam_map = self.grad_cam.generate_heatmap(tensor, prototype_centroid=cent)
+                else:
+                    cam_map = self.grad_cam.generate_heatmap(tensor, target_class_idx=top1_idx)
+                gradcam_b64 = self.generate_gradcam_overlay(rgb_crop, cam_map)
+            except Exception as e:
+                print(f"[VisionEngine] Grad-CAM warning: {e}")
+                gradcam_b64 = ""
 
         # Fetch metadata
         sign_info = get_sign_info(predicted_sign)

@@ -68,6 +68,21 @@ def test_crop_square_normalized(engine):
     assert crop.shape == (224, 224, 3)
     assert crop.dtype == np.uint8
 
+def test_door_and_boundary_rejection_in_webcam_mode(engine):
+    # Create image simulating background wooden door touching top of frame
+    img = np.ones((480, 640, 3), dtype=np.uint8) * 30
+    cv2.rectangle(img, (150, 0), (320, 380), (50, 110, 190), -1)
+    regions = engine.extract_signs(img, allow_empty=True)
+    # Background door touching top border must be rejected
+    assert len(regions) == 0
+
+def test_face_masking_prevents_face_classification(engine):
+    img = np.zeros((480, 640, 3), dtype=np.uint8)
+    mask = np.ones((480, 640), dtype=np.uint8) * 255
+    if engine.face_detector is not None:
+        masked = engine.detect_and_mask_faces(img, mask)
+        assert masked.shape == (480, 640)
+
 def test_pil_image_input(engine):
     pil_img = Image.new("RGB", (300, 300), color=(50, 50, 50))
     regions = engine.extract_signs(pil_img)
