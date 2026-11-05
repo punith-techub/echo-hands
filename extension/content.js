@@ -238,8 +238,16 @@
 
     // Initialize Three.js 3D Avatar
     const mount = document.getElementById("eh-avatar-canvas-wrap");
+    console.log("[Echo-Hands] Initializing avatar. mount:", !!mount, "THREE:", typeof THREE !== "undefined", "ISL3DAvatar:", typeof ISL3DAvatar !== "undefined");
     if (window.THREE && window.ISL3DAvatar && mount) {
-      avatarInstance = new ISL3DAvatar(mount);
+      try {
+        avatarInstance = new ISL3DAvatar(mount);
+        console.log("[Echo-Hands] Avatar initialized successfully!");
+      } catch (err) {
+        console.error("[Echo-Hands] Error creating ISL3DAvatar instance:", err);
+      }
+    } else {
+      console.warn("[Echo-Hands] Cannot mount avatar: THREE=" + (typeof THREE !== "undefined") + " ISL3DAvatar=" + (typeof ISL3DAvatar !== "undefined") + " mount=" + !!mount);
     }
 
     makeOverlayDraggable();

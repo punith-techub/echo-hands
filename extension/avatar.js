@@ -1009,10 +1009,6 @@ class ISL3DAvatar {
     };
   }
 
-    // Default neutral ready pose
-    return JSON.parse(JSON.stringify(this.defaultPose));
-  }
-
   playSequence(tokens, onTokenChange = null, onComplete = null) {
     if (!tokens || tokens.length === 0) return;
     if (this.activeTimer) {
