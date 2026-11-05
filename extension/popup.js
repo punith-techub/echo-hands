@@ -115,7 +115,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       } else {
         if (backendStatusTxt) {
-          backendStatusTxt.textContent = "⚠️ Server responded with HTTP " + res.status;
+          if (res.status === 502) {
+            backendStatusTxt.textContent = "⚠️ HTTP 502: Tunnel is up, but Python server on port 8000 was offline.";
+          } else {
+            backendStatusTxt.textContent = "⚠️ Server responded with HTTP " + res.status;
+          }
           backendStatusTxt.style.color = "#f59e0b";
         }
       }
