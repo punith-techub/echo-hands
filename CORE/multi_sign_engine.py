@@ -538,17 +538,13 @@ class MultiSignEngine:
         # ----------------------------------------------------------------
         if allow_empty and self.hand_landmarker is not None:
             # Webcam path: use MediaPipe for accurate hand bbox
-            # Zero false positives from face/body/background
             mediapipe_boxes = self._detect_hands_mediapipe(rgb)
             if mediapipe_boxes:
                 raw_boxes = mediapipe_boxes
-            # If MediaPipe found 0 hands → no detection (return empty)
-            # We do NOT fall back to skin segmentation in webcam mode to
-            # avoid false positives from face/body/background
+            else:
+                # Seamless fallback to robust skin contour segmentation if MediaPipe missed hand
+                raw_boxes = self._extract_via_skin_fallback(rgb, allow_empty=True, h=h, w=w, total_area=total_area)
         else:
-            # Static image benchmark path (allow_empty=False):
-            # Use skin segmentation (MediaPipe is too slow for batch benchmarks
-            # and static ISL chart images don't have webcam artifacts)
             raw_boxes = self._extract_via_skin_fallback(rgb, allow_empty, h, w, total_area)
 
         # If no contours match and allow_empty is requested (live webcam stream), return empty

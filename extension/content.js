@@ -196,7 +196,10 @@
         <!-- PIP Webcam Video Preview -->
         <div class="eh-cam-pip" id="eh-cam-pip-container" title="Camera Gesture Tracker">
           <video id="eh-pip-video" autoplay playsinline muted></video>
-          <div class="eh-pip-status" id="eh-pip-status-txt">AI VISION: ON</div>
+          <div style="display:flex; justify-content:space-between; align-items:center; width:100%; padding:2px 4px; box-sizing:border-box;">
+            <div class="eh-pip-status" id="eh-pip-status-txt">AI VISION: ON</div>
+            <button id="eh-scan-hand-btn" style="background:#00e6b4; color:#041014; border:none; border-radius:3px; font-size:9px; font-weight:800; padding:1px 5px; cursor:pointer;" title="Click to force instant AI hand recognition">📷 Scan</button>
+          </div>
         </div>
       </div>
       <!-- Quick Sign Action Buttons for Deaf User -->
@@ -333,8 +336,10 @@
     normalBar.innerHTML = `
       <div class="eh-normal-row1">
         <span style="display:flex; align-items:center; gap:6px;">
-          <span class="eh-mic-indicator" id="eh-mic-led"></span>
-          <span>🎙️ Echo-Hands Voice Relay</span>
+          <button id="eh-mic-toggle-btn" class="eh-mic-toggle-btn active" title="Click to start/stop live microphone">
+            <span class="eh-mic-indicator eh-mic-active" id="eh-mic-led"></span>
+            <span id="eh-mic-btn-label">🎙️ Mic: ON</span>
+          </button>
         </span>
         <div style="display:flex; gap:6px;">
           <button id="eh-normal-test-voice" class="eh-test-voice-btn" title="Click to test audio playback">🔊 Sound Ready</button>
@@ -365,7 +370,7 @@
       normalBar.style.display = "none";
     };
 
-    // Voice playback test button (unlocks browser audio policy on Mac & Windows)
+    // Voice playback test button
     const testVoiceBtn = document.getElementById("eh-normal-test-voice");
     if (testVoiceBtn) {
       testVoiceBtn.onclick = () => {
@@ -406,29 +411,72 @@
       }
     });
 
-    // Continuous Speech Recognition with Live Indicator
+    // Continuous Speech Recognition with Interactive Mic Toggle
+    const micBtn = document.getElementById("eh-mic-toggle-btn");
+    const micLabel = document.getElementById("eh-mic-btn-label");
+    const micLed = document.getElementById("eh-mic-led");
+    let isMicListening = true;
+
     if (islEngine) {
-      const micLed = document.getElementById("eh-mic-led");
       islEngine.onSpeechStatus = (status) => {
-        if (micLed) {
+        if (micLed && micLabel) {
           if (status === "listening") {
             micLed.className = "eh-mic-indicator eh-mic-active";
-            micLed.title = "Microphone listening";
+            micLabel.textContent = "🎙️ Mic: ON";
           } else if (status === "error") {
             micLed.className = "eh-mic-indicator eh-mic-err";
-            micLed.title = "Microphone permission needed";
+            micLabel.textContent = "🎙️ Click to Allow Mic";
           } else {
             micLed.className = "eh-mic-indicator";
+            micLabel.textContent = "🎙️ Mic: OFF";
           }
         }
       };
 
       islEngine.onVoiceTranscript = (spokenText) => {
-        console.log("[Echo-Hands] Spoken speech detected:", spokenText);
+        console.log("%c[Echo-Hands] Spoken speech detected:", "color: #00ffcc;", spokenText);
         sendNormalSpeech(spokenText);
       };
+
+      // Start listening
       islEngine.startListening("en-IN");
+
+      if (micBtn) {
+        micBtn.onclick = () => {
+          isMicListening = !isMicListening;
+          if (isMicListening) {
+            micBtn.className = "eh-mic-toggle-btn active";
+            islEngine.startListening("en-IN");
+          } else {
+            micBtn.className = "eh-mic-toggle-btn";
+            islEngine.stopListening();
+          }
+        };
+      }
     }
+
+    // Google Meet Live Caption Interceptor (Failsafe for speech)
+    initMeetCaptionObserver();
+  }
+
+  // Google Meet Native Caption Observer
+  function initMeetCaptionObserver() {
+    let lastCaption = "";
+    try {
+      const observer = new MutationObserver(() => {
+        const nodes = document.querySelectorAll("div[jsname='YSxPC'], .iTTPOb, div[aria-live='polite'] span");
+        if (nodes.length > 0) {
+          const latest = nodes[nodes.length - 1];
+          const text = (latest.textContent || "").trim();
+          if (text && text !== lastCaption && text.length > 1) {
+            lastCaption = text;
+            console.log("%c[Echo-Hands] Intercepted Meet speech caption:", "color: #00ffcc;", text);
+            sendNormalSpeech(text);
+          }
+        }
+      });
+      observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    } catch (e) {}
   }
 
   // Normal Person transmits voice to the deaf person's avatar
@@ -477,7 +525,17 @@
     const video = document.getElementById("eh-pip-video");
     const offCanvas = document.getElementById("eh-offscreen-canvas");
     const pipStatus = document.getElementById("eh-pip-status-txt");
+    const scanBtn = document.getElementById("eh-scan-hand-btn");
     if (!video || !offCanvas) return;
+
+    function attachStream(stream) {
+      if (!video || !stream) return;
+      video.srcObject = stream;
+      video.onloadedmetadata = () => {
+        video.play().catch(() => {});
+      };
+      video.play().catch(() => {});
+    }
 
     try {
       if (!cameraStream) {
@@ -485,16 +543,23 @@
           video: { width: 640, height: 480, facingMode: "user" }
         });
       }
-      video.srcObject = cameraStream;
+      attachStream(cameraStream);
     } catch (e) {
-      // Fallback: look for Google Meet's active video stream
-      const allVideos = Array.from(document.querySelectorAll("video"));
-      const meetVid = allVideos.find(v => v !== video && v.srcObject);
-      if (meetVid && meetVid.srcObject) {
-        video.srcObject = meetVid.srcObject;
+      // Fallback: search for Google Meet's active video stream
+      const allVideos = Array.from(document.querySelectorAll("video")).filter(v => v !== video && v.readyState >= 2);
+      if (allVideos.length > 0 && allVideos[0].srcObject) {
+        attachStream(allVideos[0].srcObject);
       } else {
-        if (pipStatus) pipStatus.textContent = "AI VISION: TAP SIGN";
+        if (pipStatus) pipStatus.textContent = "AI VISION: TAP SCAN";
       }
+    }
+
+    function getActiveSource() {
+      if (video && video.readyState >= 2 && video.videoWidth > 0 && !video.paused) {
+        return video;
+      }
+      const meetVids = Array.from(document.querySelectorAll("video")).filter(v => v !== video && v.readyState >= 2 && v.videoWidth > 0);
+      return meetVids.length > 0 ? meetVids[0] : (video || null);
     }
 
     // Recognition loop variables
@@ -504,20 +569,20 @@
     let consecutiveCount = 0;
     let lastSentTimestamp = 0;
 
-    if (captureIntervalId) clearInterval(captureIntervalId);
-
-    // Frame capture every 350ms -> directly to Python PyTorch backend!
-    captureIntervalId = setInterval(async () => {
-      if (!video || video.readyState < 2 || video.videoWidth === 0) return;
+    async function doFrameCapture(force = false) {
+      const src = getActiveSource();
+      if (!src || src.readyState < 2 || src.videoWidth === 0) {
+        if (pipStatus) pipStatus.textContent = "AI: AWAITING CAM";
+        return;
+      }
 
       const ctx = offCanvas.getContext("2d", { willReadFrequently: true });
       if (!ctx) return;
 
       // Draw high-resolution 480x360 frame
-      ctx.drawImage(video, 0, 0, offCanvas.width, offCanvas.height);
+      ctx.drawImage(src, 0, 0, offCanvas.width, offCanvas.height);
 
       if (islEngine) {
-        // Run PyTorch model + MediaPipe on Python backend!
         const bUrl = peerSync ? peerSync.backendUrl : null;
         const result = await islEngine.classifyFrameWithServer(offCanvas, bUrl);
 
@@ -527,7 +592,12 @@
             pipStatus.style.color = "#00ffcc";
           }
 
-          // Gesture stabilization logic (2 consecutive frames with 1.2s debounce)
+          if (force) {
+            sendDeafSign(result.sign, result.sentence || null);
+            return;
+          }
+
+          // Gesture stabilization logic (2 consecutive frames with 1.0s debounce)
           if (result.sign === candidateSign) {
             consecutiveCount++;
           } else {
@@ -537,7 +607,7 @@
           }
 
           const now = Date.now();
-          if (consecutiveCount >= 2 && now - lastSentTimestamp > 1200) {
+          if (consecutiveCount >= 2 && now - lastSentTimestamp > 1000) {
             lastSentTimestamp = now;
             lastStableSign = candidateSign;
             sendDeafSign(candidateSign, candidateSentence);
@@ -551,6 +621,21 @@
           consecutiveCount = 0;
         }
       }
+    }
+
+    // Wire manual one-click scan button
+    if (scanBtn) {
+      scanBtn.onclick = async (e) => {
+        e.stopPropagation();
+        scanBtn.textContent = "Scanning...";
+        await doFrameCapture(true);
+        setTimeout(() => { if (scanBtn) scanBtn.textContent = "📷 Scan"; }, 700);
+      };
+    }
+
+    if (captureIntervalId) clearInterval(captureIntervalId);
+    captureIntervalId = setInterval(() => {
+      doFrameCapture(false);
     }, 350);
   }
 

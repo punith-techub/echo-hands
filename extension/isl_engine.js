@@ -115,25 +115,39 @@ class ISLEngine {
       this.recognition.lang = "en-IN";
 
       let lastDispatched = "";
-      let lastDispatchTime = 0;
+      let interimDebounceTimer = null;
 
       this.recognition.onresult = (event) => {
+        let fullTranscript = "";
+        let isFinalBatch = false;
+
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const res = event.results[i];
-          const transcript = res[0].transcript.trim();
-          const now = Date.now();
+          fullTranscript += " " + res[0].transcript;
+          if (res.isFinal) isFinalBatch = true;
+        }
 
-          // Dispatch if final OR if single short letter/word with 800ms debounce
-          if (res.isFinal || (transcript.length <= 4 && now - lastDispatchTime > 1000)) {
-            if (transcript !== lastDispatched || now - lastDispatchTime > 1500) {
-              lastDispatched = transcript;
-              lastDispatchTime = now;
-              console.log("[Echo-Hands STT] Spoken voice detected:", transcript);
-              if (typeof this.onVoiceTranscript === "function") {
-                this.onVoiceTranscript(transcript);
-              }
-            }
+        const clean = fullTranscript.trim();
+        if (!clean) return;
+
+        const dispatchText = (txt) => {
+          if (!txt || txt === lastDispatched) return;
+          lastDispatched = txt;
+          console.log(`%c[Echo-Hands STT] Dispatched speech: "${txt}"`, "color: #00ffcc; font-weight: bold;");
+          if (typeof this.onVoiceTranscript === "function") {
+            this.onVoiceTranscript(txt);
           }
+        };
+
+        if (isFinalBatch) {
+          if (interimDebounceTimer) clearTimeout(interimDebounceTimer);
+          dispatchText(clean);
+        } else {
+          // Instant debounced dispatch on natural pauses (550ms)
+          if (interimDebounceTimer) clearTimeout(interimDebounceTimer);
+          interimDebounceTimer = setTimeout(() => {
+            dispatchText(clean);
+          }, 550);
         }
       };
 
@@ -141,6 +155,14 @@ class ISLEngine {
         console.warn("[Echo-Hands STT] Speech recognition warning:", err.error);
         if (typeof this.onSpeechStatus === "function") {
           this.onSpeechStatus("error", err.error);
+        }
+        // If audio-capture or not-allowed, auto-retry after 1.5s
+        if (this.isListening && err.error !== "not-allowed") {
+          setTimeout(() => {
+            if (this.isListening) {
+              try { this.recognition.start(); } catch (e) {}
+            }
+          }, 1500);
         }
       };
 

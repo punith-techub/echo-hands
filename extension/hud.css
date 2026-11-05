@@ -474,3 +474,82 @@ div[data-message-text*="Echo-Hands"] {
 .eh-hud-send-btn:hover {
   background: #00ffcc !important;
 }
+
+/* 9. Real Human ISL Hand Graphic Card */
+.eh-real-hand-card {
+  position: absolute !important;
+  bottom: 8px !important;
+  left: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: rgba(3, 10, 16, 0.92) !important;
+  border: 1px solid rgba(0, 230, 180, 0.5) !important;
+  border-radius: 8px !important;
+  padding: 4px 8px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.8), 0 0 10px rgba(0, 230, 180, 0.25) !important;
+  z-index: 10 !important;
+  pointer-events: none !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.eh-hand-svg-wrap {
+  width: 38px !important;
+  height: 38px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: rgba(0, 230, 180, 0.1) !important;
+  border-radius: 6px !important;
+}
+
+.eh-hand-svg-wrap svg {
+  width: 32px !important;
+  height: 32px !important;
+}
+
+.eh-hand-info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 1px !important;
+}
+
+.eh-hand-sign-name {
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  color: #00ffcc !important;
+  letter-spacing: 0.5px !important;
+}
+
+.eh-hand-sign-desc {
+  font-size: 9px !important;
+  color: #94a3b8 !important;
+  font-weight: 500 !important;
+}
+
+/* 10. Normal Person Mic Toggle Button */
+.eh-mic-toggle-btn {
+  background: rgba(0, 230, 180, 0.18) !important;
+  border: 1px solid rgba(0, 230, 180, 0.45) !important;
+  color: #00e6b4 !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  padding: 3px 8px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  transition: all 0.15s !important;
+}
+
+.eh-mic-toggle-btn:hover {
+  background: #00e6b4 !important;
+  color: #041014 !important;
+}
+
+.eh-mic-toggle-btn.active {
+  background: #00e6b4 !important;
+  color: #041014 !important;
+  box-shadow: 0 0 10px #00e6b4 !important;
+}
