@@ -32,6 +32,22 @@ In our digital world, remote video meetings have become standard for education, 
 
 ---
 
+## ⚖️ Existing Platforms vs. Echo-Hands (What They Lack & What We Did Differently)
+
+Most solutions today treat accessibility as an afterthought. Here is an honest breakdown of what standard platforms lack and how Echo-Hands changes the game:
+
+| Feature / Capability | Existing Tools (Google Meet / Zoom / MS Teams / Otter.ai) | Typical Research Apps / Gloves | 🚀 Echo-Hands (Our Solution) |
+|---|---|---|---|
+| **Direction of Communication** | **One-Way Only**: Converts speech $\rightarrow$ text captions. The deaf user cannot speak back with signs. | Often only sign $\rightarrow$ text (single-direction isolated letters). | **True Two-Way (Bidirectional)**: Signs become spoken voice, and voice becomes live 3D sign animations. |
+| **User Output Representation** | **Flat Text Captions**: Reading text rapidly during an active meeting causes visual fatigue and misses tone. | Text output or static 2D images. | **Fluid 3D Humanoid Avatar**: 60 FPS articulated 3D avatar signing directly on-screen in ISL with finger joints and natural pacing. |
+| **Voice Output for the Deaf** | ❌ **None**: The deaf participant is forced to type in the meeting chat window. | Robbed of vocal presence or requires manual audio files. | **Real-Time Human Voice**: Speaks aloud in fluent Indian English (`en-IN`) and Hindi (`hi-IN`) straight to the other participants' speakers. |
+| **Grammar Handling** | **Word-by-word / None**: Sign Language uses Subject-Object-Verb (SOV); English uses SVO. Direct text is grammatically disjointed. | Literal alphabet-by-alphabet fingerspelling only. | **Smart SOV $\leftrightarrow$ SVO Grammar Engine**: Re-orders and conjugates words naturally (`['I', 'FOOD', 'WANT']` $\rightarrow$ *"I want food."*). |
+| **Hardware Requirements** | Standard PC, but limited accessibility features. | ❌ Expensive sensory data-gloves ($500+), external depth sensors, or high-end GPUs. | **100% Zero Extra Hardware**: Runs entirely on a standard laptop webcam using lightweight browser-based computer vision. |
+| **Meeting Integration** | Built-in basic subtitles; external services require tab switching. | Separate standalone windows that disconnect you from the call. | **Seamless Meeting Overlay HUD**: Non-intrusive Chrome MV3 Extension injecting an in-call HUD directly onto Google Meet, Zoom, or Teams. |
+| **Continuous Learning** | Static speech models. | Fixed pre-trained models that fail on different hand sizes or lighting. | **Dual-Brain Architecture**: Combines CNN landmark detection with online Prototype Memory that updates and adapts when corrected. |
+
+---
+
 ## 🎯 Use Cases
 
 * 🎓 **Online Classes & University Lectures**: Deaf students can attend any online lecture, see live sign language via the 3D avatar, and answer questions using their hands while the class hears their voice.
