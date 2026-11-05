@@ -2,61 +2,71 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ECHOHANDS Settings</title>
-  <link rel="stylesheet" href="popup.css">
+  <title>Echo-Hands</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 16px;
+      width: 260px;
+      background: #080e14;
+      color: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid rgba(0, 230, 180, 0.2);
+      padding-bottom: 8px;
+    }
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #00e6b4;
+      box-shadow: 0 0 8px #00e6b4;
+    }
+    .title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #00e6b4;
+    }
+    .desc {
+      font-size: 12px;
+      color: #94a3b8;
+      line-height: 1.4;
+      margin-bottom: 12px;
+    }
+    .status-badge {
+      font-size: 11px;
+      background: rgba(0, 230, 180, 0.1);
+      border: 1px solid rgba(0, 230, 180, 0.3);
+      padding: 6px 10px;
+      border-radius: 6px;
+      color: #00e6b4;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
-  <div class="popup-container">
-    <div class="popup-header">
-      <div class="brand">
-        <span class="logo-dot"></span>
-        <span class="brand-name">ECHOHANDS 5.0</span>
-      </div>
-      <span class="status-badge" id="meeting-badge">DETECTING...</span>
+  <div class="header">
+    <div class="dot"></div>
+    <div class="title">Echo-Hands Active</div>
+  </div>
+  <div class="desc">
+    Auto-detects Google Meet, Zoom, WhatsApp Web, and Teams video calls.
+  </div>
+  <div class="status-badge">
+    ✓ Ready for calls
+  </div>
+  <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 6px;">
+    <label style="font-size: 11px; color: #94a3b8; font-weight: 600;">Python AI Backend URL:</label>
+    <div style="display: flex; gap: 6px;">
+      <input type="text" id="eh-backend-input" value="https://python-crouch-bucked.ngrok-free.dev" placeholder="https://python-crouch-bucked.ngrok-free.dev" style="flex: 1; background: #03080d; border: 1px solid rgba(0, 230, 180, 0.4); color: #00e6b4; font-size: 11px; padding: 6px; border-radius: 4px; outline: none;">
+      <button id="eh-backend-save-btn" style="background: #00e6b4; color: #041014; border: none; font-size: 11px; font-weight: 700; padding: 6px 10px; border-radius: 4px; cursor: pointer;">Save</button>
     </div>
-
-    <div class="section-title">COMMUNICATION ROLE</div>
-    <div class="role-grid">
-      <button class="role-card active" id="role-signer">
-        <span class="role-icon">🤟</span>
-        <span class="role-title">DEAF / MUTE</span>
-        <span class="role-desc">ISL Gesture to Real Voice</span>
-      </button>
-      <button class="role-card" id="role-speaker">
-        <span class="role-icon">🎙️</span>
-        <span class="role-title">HEARING</span>
-        <span class="role-desc">Voice to 3D Live Sign Avatar</span>
-      </button>
-    </div>
-
-    <div class="section-title">HUD & SPEECH CONFIG</div>
-    <div class="config-row">
-      <label>Voice Language</label>
-      <select id="lang-select">
-        <option value="en-IN">Indian English (en-IN)</option>
-        <option value="hi-IN">Hindi (hi-IN)</option>
-      </select>
-    </div>
-
-    <div class="config-row">
-      <label>Auto-Voice Synthesizer</label>
-      <input type="checkbox" id="auto-voice-toggle" checked>
-    </div>
-
-    <div class="config-row">
-      <label>3D Avatar HUD</label>
-      <input type="checkbox" id="avatar-toggle" checked>
-    </div>
-
-    <div class="actions-section">
-      <button class="action-btn primary" id="btn-toggle-hud">TOGGLE HUD OVERLAY</button>
-      <button class="action-btn secondary" id="btn-open-simulator">🌐 OPEN ASTRA-MEET SIMULATOR</button>
-    </div>
-
-    <div class="popup-footer">
-      <span>ECHOHANDS ISL // MANIFEST V3</span>
-      <span id="version-tag">v5.0-PHASE3</span>
-    </div>
+    <div id="eh-backend-status-txt" style="font-size: 10px; color: #64748b; margin-top: 2px;">Connects to PyTorch & Gemini cloud engine</div>
   </div>
   <script src="popup.js"></script>
 </body>

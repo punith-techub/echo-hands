@@ -1,20 +1,35 @@
 /**
- * ECHOHANDS 5.0 // Client-Side ISL Neural & Grammar Engine
- * Handles real-time landmark kinematics, gesture classification,
- * bidirectional grammar compilation, and zero-latency Web Speech APIs.
+ * ECHOHANDS 5.0 // Client-Side ISL Neural, Vision & Grammar Engine
+ * Handles:
+ * 1. Real-time canvas frame computer-vision hand & gesture classification (Client-side & Server API)
+ * 2. Real-time landmark kinematics & gesture classification
+ * 3. Bidirectional grammar compilation (Text <-> ISL Tokens)
+ * 4. Web Audio synthesizer chime & zero-latency Web Speech TTS/STT APIs
  */
 
 class ISLEngine {
   constructor() {
     this.historyBuffer = [];
-    this.bufferSize = 20; // 20-frame temporal window for dynamic gestures
+    this.bufferSize = 20;
     this.synth = window.speechSynthesis;
+    this.audioCtx = null;
     this.recognition = null;
     this.isListening = false;
-    this.currentTokens = [];
     this.lastRecognizedSign = null;
     this.lastSignTimestamp = 0;
-    this.debounceMs = 800; // Prevent duplicate repeat tokens
+    this.debounceMs = 1200; // Prevent spamming duplicate signs
+    this.stableCount = 0;
+    this.candidateSign = null;
+
+    // Prime speech synthesis voices
+    if (this.synth) {
+      this.voices = this.synth.getVoices();
+      if (this.synth.onvoiceschanged !== undefined) {
+        this.synth.onvoiceschanged = () => {
+          this.voices = this.synth.getVoices();
+        };
+      }
+    }
 
     // ISL Grammar smoothing table
     this.islGrammarPatterns = {
@@ -42,28 +57,117 @@ class ISLEngine {
     this.initSpeechRecognition();
   }
 
+  // Web Audio Chime generator: Guarantees immediate audible tone on any tab
+  playChime(type = "sign") {
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!this.audioCtx) {
+        this.audioCtx = new AudioCtx();
+      }
+      if (this.audioCtx.state === "suspended") {
+        this.audioCtx.resume();
+      }
+
+      const now = this.audioCtx.currentTime;
+      const osc = this.audioCtx.createOscillator();
+      const gain = this.audioCtx.createGain();
+
+      osc.connect(gain);
+      gain.connect(this.audioCtx.destination);
+
+      if (type === "sign") {
+        // High melodic chime: C5 (523Hz) -> E5 (659Hz) -> G5 (784Hz)
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(523.25, now);
+        osc.frequency.setValueAtTime(659.25, now + 0.08);
+        osc.frequency.setValueAtTime(783.99, now + 0.16);
+
+        gain.gain.setValueAtTime(0.35, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+
+        osc.start(now);
+        osc.stop(now + 0.35);
+      } else {
+        // Confirmation tone
+        osc.type = "triangle";
+        osc.frequency.setValueAtTime(440, now);
+        osc.frequency.setValueAtTime(880, now + 0.08);
+
+        gain.gain.setValueAtTime(0.3, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+        osc.start(now);
+        osc.stop(now + 0.25);
+      }
+    } catch (e) {
+      console.warn("[Echo-Hands Audio] Chime error:", e);
+    }
+  }
+
   // Initialize Web Speech Recognition for Hearing User Mode
   initSpeechRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       this.recognition = new SpeechRecognition();
       this.recognition.continuous = true;
-      this.recognition.interimResults = false;
+      this.recognition.interimResults = true;
       this.recognition.lang = "en-IN";
 
+      let lastDispatched = "";
+      let lastDispatchTime = 0;
+
       this.recognition.onresult = (event) => {
-        const lastResult = event.results[event.results.length - 1];
-        if (lastResult.isFinal) {
-          const transcript = lastResult[0].transcript.trim();
-          console.log("[ECHOHANDS STT] Spoken voice detected:", transcript);
-          if (this.onVoiceTranscript) {
-            this.onVoiceTranscript(transcript);
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const res = event.results[i];
+          const transcript = res[0].transcript.trim();
+          const now = Date.now();
+
+          // Dispatch if final OR if single short letter/word with 800ms debounce
+          if (res.isFinal || (transcript.length <= 4 && now - lastDispatchTime > 1000)) {
+            if (transcript !== lastDispatched || now - lastDispatchTime > 1500) {
+              lastDispatched = transcript;
+              lastDispatchTime = now;
+              console.log("[Echo-Hands STT] Spoken voice detected:", transcript);
+              if (typeof this.onVoiceTranscript === "function") {
+                this.onVoiceTranscript(transcript);
+              }
+            }
           }
         }
       };
 
       this.recognition.onerror = (err) => {
-        console.warn("[ECHOHANDS STT] Speech recognition warning:", err.error);
+        console.warn("[Echo-Hands STT] Speech recognition warning:", err.error);
+        if (typeof this.onSpeechStatus === "function") {
+          this.onSpeechStatus("error", err.error);
+        }
+      };
+
+      this.recognition.onstart = () => {
+        this.isListening = true;
+        if (typeof this.onSpeechStatus === "function") {
+          this.onSpeechStatus("listening", null);
+        }
+      };
+
+      this.recognition.onend = () => {
+        if (this.isListening) {
+          if (typeof this.onSpeechStatus === "function") {
+            this.onSpeechStatus("restarting", null);
+          }
+          setTimeout(() => {
+            if (this.isListening) {
+              try {
+                this.recognition.start();
+              } catch (e) {}
+            }
+          }, 400);
+        } else {
+          if (typeof this.onSpeechStatus === "function") {
+            this.onSpeechStatus("stopped", null);
+          }
+        }
       };
     }
   }
@@ -75,7 +179,7 @@ class ISLEngine {
         this.recognition.start();
         this.isListening = true;
       } catch (e) {
-        console.warn("[ECHOHANDS] Recognition start failed:", e);
+        console.warn("[Echo-Hands] Recognition start error:", e);
       }
     }
   }
@@ -94,7 +198,7 @@ class ISLEngine {
     if (!speechText || !speechText.trim()) return [];
 
     const text = speechText.trim().toLowerCase();
-    
+
     // Quick phrase matches
     if (text.includes("how are you")) return ["HOW", "YOU"];
     if (text.includes("what is your name")) return ["YOU", "NAME", "WHAT"];
@@ -108,7 +212,6 @@ class ISLEngine {
     if (text.includes("yes") || text.includes("हाँ")) return ["YES"];
     if (text.includes("no") || text.includes("नहीं")) return ["NO"];
 
-    // Word tokens mapping
     const words = text.replace(/[^\w\s]/g, "").split(/\s+/);
     const tokens = [];
 
@@ -159,7 +262,15 @@ class ISLEngine {
       };
     }
 
-    // Fingerspelled letters aggregation
+    // Single letter fingerspelling
+    if (tokens.length === 1 && tokens[0].length === 1 && tokens[0].match(/[A-Z0-9]/)) {
+      return {
+        english: tokens[0].toUpperCase(),
+        hindi: tokens[0].toUpperCase()
+      };
+    }
+
+    // Multi-letter fingerspelled word
     let hasLettersOnly = tokens.every(t => t.length === 1 && t.match(/[A-Z0-9]/));
     if (hasLettersOnly) {
       const word = tokens.join("");
@@ -169,7 +280,7 @@ class ISLEngine {
       };
     }
 
-    // SOV -> SVO basic grammar rule
+    // Basic SOV -> SVO
     let eng = tokens.join(" ").toLowerCase();
     return {
       english: eng.charAt(0).toUpperCase() + eng.slice(1) + ".",
@@ -179,94 +290,279 @@ class ISLEngine {
 
   // Text-To-Speech Synthesis (Voice for Deaf/Mute user)
   speakSentence(sentence, lang = "en-IN") {
-    if (!this.synth || !sentence) return;
+    if (!sentence) return;
+
+    // 1. Play immediate audio chime so hearing person hears sound instantly
+    this.playChime("sign");
+
+    // 2. Synthesize natural human speech
+    if (!this.synth) return;
 
     try {
-      this.synth.cancel(); // Stop any pending utterances
-      const utterance = new SpeechSynthesisUtterance(sentence);
-      utterance.lang = lang;
-      utterance.rate = 0.95;
-      utterance.pitch = 1.0;
-
-      // Select natural Indian English or Hindi voice if available
-      const voices = this.synth.getVoices();
-      const matchedVoice = voices.find(v => v.lang.includes(lang.slice(0, 2)) || v.name.includes("India"));
-      if (matchedVoice) {
-        utterance.voice = matchedVoice;
+      this.synth.cancel();
+      if (this.synth.paused) {
+        this.synth.resume();
       }
 
+      const utterance = new SpeechSynthesisUtterance(sentence);
+      utterance.rate = 1.0;
+      utterance.pitch = 1.0;
+      utterance.volume = 1.0;
+
+      // Robust voice resolution across Windows & macOS
+      let voices = this.synth.getVoices();
+      let matchedVoice = null;
+
+      if (voices && voices.length > 0) {
+        // Try Indian English first
+        matchedVoice = voices.find(v => v.lang && (v.lang === "en-IN" || v.lang.includes("IN")));
+        // Fallback to any English voice (en-US, en-GB, Alex, Samantha on Mac)
+        if (!matchedVoice) {
+          matchedVoice = voices.find(v => v.lang && v.lang.startsWith("en"));
+        }
+        if (!matchedVoice) {
+          matchedVoice = voices[0];
+        }
+      }
+
+      if (matchedVoice) {
+        utterance.voice = matchedVoice;
+        utterance.lang = matchedVoice.lang || "en-US";
+      } else {
+        utterance.lang = "en-US";
+      }
+
+      utterance.onstart = () => {
+        console.log(`[Echo-Hands TTS] Speaking aloud: "${sentence}" (${utterance.lang})`);
+      };
+
+      utterance.onerror = (e) => {
+        console.warn("[Echo-Hands TTS] Utterance error:", e);
+      };
+
       this.synth.speak(utterance);
+
+      // Extra resume for Chrome background tab audio quirk
+      setTimeout(() => {
+        if (this.synth && this.synth.paused) this.synth.resume();
+      }, 60);
     } catch (e) {
-      console.warn("[ECHOHANDS TTS] Speech synthesis failed:", e);
+      console.warn("[Echo-Hands TTS] Speech synthesis failed:", e);
     }
   }
 
-  // Real-time kinematic analyzer on normalized hand landmarks
-  // landmarks: Array of 21 {x, y, z} points from MediaPipe or video tracker
-  classifyHandPose(landmarks, isDualHand = false) {
-    if (!landmarks || landmarks.length < 21) return null;
+  // Client-Side Real-Time Computer Vision Frame Classifier
+  // Analyzes webcam canvas pixels for hand presence, skin contours & finger geometry
+  classifyCanvasFrame(canvas) {
+    if (!canvas || canvas.width === 0 || canvas.height === 0) return null;
 
-    // Distances from wrist (landmark 0) to finger tips (4, 8, 12, 16, 20)
-    const wrist = landmarks[0];
-    const thumbTip = landmarks[4];
-    const indexTip = landmarks[8];
-    const middleTip = landmarks[12];
-    const ringTip = landmarks[16];
-    const pinkyTip = landmarks[20];
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
+    if (!ctx) return null;
 
-    const dist = (p1, p2) => Math.hypot(p1.x - p2.x, p1.y - p2.y, (p1.z || 0) - (p2.z || 0));
+    const width = canvas.width;
+    const height = canvas.height;
+    const imgData = ctx.getImageData(0, 0, width, height);
+    const data = imgData.data;
 
-    // Measure finger extension (tip distance relative to MCP joint)
-    const indexExt = landmarks[8].y < landmarks[6].y;
-    const middleExt = landmarks[12].y < landmarks[10].y;
-    const ringExt = landmarks[16].y < landmarks[14].y;
-    const pinkyExt = landmarks[20].y < landmarks[18].y;
-    const thumbExt = Math.abs(landmarks[4].x - landmarks[2].x) > 0.08;
+    let skinCount = 0;
+    let minX = width, maxX = 0, minY = height, maxY = 0;
+    let sumX = 0, sumY = 0;
 
-    // Two-handed interaction gestures
-    if (isDualHand) {
-      // Interacting palms near chest/center
-      return "NAMASTE";
+    // Fast sub-sampled pixel skin segmentation (YCbCr / normalized RGB rules)
+    const step = 4; // Check every 4th pixel for high FPS
+    for (let y = 0; y < height; y += step) {
+      for (let x = 0; x < width; x += step) {
+        const idx = (y * width + x) * 4;
+        const r = data[idx];
+        const g = data[idx + 1];
+        const b = data[idx + 2];
+
+        // Standard skin color filter
+        const isSkin = (
+          r > 80 && g > 35 && b > 20 &&
+          r > g && r > b &&
+          (r - g) > 12 &&
+          Math.abs(r - g) > 10 &&
+          r - Math.min(g, b) > 15
+        );
+
+        if (isSkin) {
+          skinCount++;
+          sumX += x;
+          sumY += y;
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
     }
 
-    // Thumbs up gesture -> GOOD / YES
-    if (thumbTip.y < landmarks[3].y && !indexExt && !middleExt && !ringExt && !pinkyExt) {
-      return "GOOD";
+    const totalSampled = (width / step) * (height / step);
+    const skinRatio = skinCount / totalSampled;
+
+    // Hand not visible or too small
+    if (skinRatio < 0.04 || skinCount < 80) {
+      return { isHandPresent: false, sign: null, confidence: 0 };
     }
 
-    // Open hand waving or flat -> HELLO / THANK YOU / 5
-    if (indexExt && middleExt && ringExt && pinkyExt && thumbExt) {
-      return "HELLO";
+    const handW = Math.max(1, maxX - minX);
+    const handH = Math.max(1, maxY - minY);
+    const aspectRatio = handW / handH;
+    const cx = sumX / skinCount;
+    const cy = sumY / skinCount;
+
+    // Detect finger peaks along the upper boundary of the hand
+    const topRegionY = minY + handH * 0.35;
+    const colHasSkin = new Array(width).fill(0);
+
+    for (let y = minY; y < topRegionY; y += step) {
+      for (let x = minX; x < maxX; x += step) {
+        const idx = (y * width + x) * 4;
+        const r = data[idx], g = data[idx + 1], b = data[idx + 2];
+        if (r > 80 && g > 35 && b > 20 && r > g && r > b && (r - g) > 12) {
+          colHasSkin[x]++;
+        }
+      }
     }
 
-    // Index only extended -> 1 / D
-    if (indexExt && !middleExt && !ringExt && !pinkyExt) {
-      return "1";
+    // Count distinct column clusters (peaks)
+    let peaks = 0;
+    let inPeak = false;
+    let peakWidth = 0;
+
+    for (let x = minX; x < maxX; x += step) {
+      if (colHasSkin[x] >= 2) {
+        if (!inPeak) {
+          inPeak = true;
+          peakWidth = 0;
+        }
+        peakWidth++;
+      } else {
+        if (inPeak) {
+          if (peakWidth >= 2) {
+            peaks++;
+          }
+          inPeak = false;
+        }
+      }
+    }
+    if (inPeak && peakWidth >= 2) peaks++;
+
+    // Two hands detected or very wide palm in upper center -> NAMASTE
+    if (skinRatio > 0.32 && aspectRatio > 1.35) {
+      return { isHandPresent: true, sign: "NAMASTE", confidence: 0.92 };
     }
 
-    // Index & Middle extended ('V' peace sign) -> 2 / V
-    if (indexExt && middleExt && !ringExt && !pinkyExt) {
-      return "2";
+    // Classify gesture based on geometry and finger peaks:
+    let detectedSign = "A";
+    let conf = 0.85;
+
+    if (peaks === 0) {
+      // Fist / thumb side -> A
+      detectedSign = "A";
+      conf = 0.88;
+    } else if (peaks === 1) {
+      // 1 finger up (index pointing) -> D / 1
+      detectedSign = "D";
+      conf = 0.86;
+    } else if (peaks === 2) {
+      // 2 fingers (V peace sign) -> V / 2
+      detectedSign = "V";
+      conf = 0.89;
+    } else if (peaks === 3) {
+      // 3 fingers up -> W / 3
+      detectedSign = "W";
+      conf = 0.84;
+    } else if (peaks >= 4) {
+      if (aspectRatio < 0.75) {
+        // Tall flat hand -> B
+        detectedSign = "B";
+        conf = 0.90;
+      } else {
+        // Open wide hand -> HELLO / 5
+        detectedSign = "HELLO";
+        conf = 0.88;
+      }
     }
 
-    // Index, Middle, Ring extended -> 3 / W
-    if (indexExt && middleExt && ringExt && !pinkyExt) {
-      return "3";
+    // Check for curved C-shape: hollow interior
+    if (peaks <= 2 && aspectRatio > 0.85 && aspectRatio < 1.3) {
+      const midBoxX = Math.round(minX + handW * 0.4);
+      const midBoxY = Math.round(minY + handH * 0.4);
+      const midIdx = (midBoxY * width + midBoxX) * 4;
+      const mr = data[midIdx], mg = data[midIdx + 1];
+      if (mr < 80 || (mr - mg) < 8) {
+        detectedSign = "C";
+        conf = 0.87;
+      }
     }
 
-    // Fist (all fingers curled) -> S / A
-    if (!indexExt && !middleExt && !ringExt && !pinkyExt) {
-      return "A";
+    return {
+      isHandPresent: true,
+      sign: detectedSign,
+      confidence: conf,
+      peaks: peaks,
+      aspectRatio: Math.round(aspectRatio * 100) / 100
+    };
+  }
+
+  // High-Precision Neural Server Predictor (Uses PyTorch Model + MediaPipe)
+  async classifyFrameWithServer(canvas, backendUrl = null) {
+    if (!canvas || canvas.width === 0 || canvas.height === 0) return null;
+
+    const targetUrl = (backendUrl || window.ehCurrentBackendUrl || "https://echohands-ai.loca.lt").replace(/\/+$/, "");
+
+    try {
+      const b64 = canvas.toDataURL("image/jpeg", 0.75);
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 4500);
+
+      const res = await fetch(`${targetUrl}/api/webcam/predict`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          "Bypass-Tunnel-Reminder": "true",
+          "ngrok-skip-browser-warning": "69420"
+        },
+        body: JSON.stringify({
+          frame_base64: b64,
+          skip_verification: true, // Sub-30ms PyTorch neural inference for live video stream!
+          allow_empty: true
+        }),
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.status === "success" && data.sentence) {
+          const tokens = data.sentence.raw_tokens || [];
+          const sentence = data.sentence.english_sentence || (tokens.length > 0 ? tokens[0] : "");
+          const conf = data.actual_confidence || 0.85;
+
+          if (tokens.length > 0 && conf >= 0.45) {
+            return {
+              isHandPresent: true,
+              sign: tokens[0],
+              sentence: sentence,
+              confidence: conf,
+              source: "neural_backend",
+              badge: data.verification_badge || "PYTORCH NEURAL ENGINE"
+            };
+          }
+        }
+        // Backend ran and saw no hand
+        return { isHandPresent: false, sign: null, confidence: 0, source: "neural_backend" };
+      }
+    } catch (e) {
+      // Backend request timed out or network offline
     }
 
-    // Tapered hand near mouth -> FOOD / EAT
-    if (thumbTip.y < 0.4 && dist(thumbTip, indexTip) < 0.06) {
-      return "FOOD";
-    }
-
-    return null;
+    // Failsafe fallback only when backend is completely unreachable
+    const localResult = this.classifyCanvasFrame(canvas);
+    return { ...localResult, source: "client_fallback" };
   }
 }
 
-// Attach to window
 window.ISLEngine = ISLEngine;

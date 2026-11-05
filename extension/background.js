@@ -8,9 +8,9 @@ const MEETING_PATTERNS = [
   "zoom.us",
   "teams.microsoft.com",
   "teams.live.com",
-  "meet.jit.si",
-  "simulator",
-  "meeting"
+  "web.whatsapp.com",
+  "whatsapp.com",
+  "meet.jit.si"
 ];
 
 chrome.runtime.onInstalled.addListener((details) => {
@@ -59,6 +59,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
     });
     sendResponse({ status: "dispatched" });
+    return true;
+  }
+
+  // Cross-Tab Peer Relay (Bypasses origin and BroadcastChannel limits)
+  if (request.type === "RELAY_PEER_EVENT") {
+    chrome.tabs.query({}, (tabs) => {
+      tabs.forEach((tab) => {
+        // Relay to other tabs (not the sender tab)
+        if (!sender.tab || tab.id !== sender.tab.id) {
+          chrome.tabs.sendMessage(tab.id, {
+            type: "INCOMING_PEER_EVENT",
+            payload: request.payload
+          }).catch(() => {});
+        }
+      });
+    });
+    sendResponse({ status: "relayed" });
     return true;
   }
 });

@@ -1,11 +1,11 @@
 {
   "manifest_version": 3,
-  "name": "ECHOHANDS // Real-Time ISL Meeting Translator",
+  "name": "Echo-Hands // Sign Language Video Call Overlay",
   "version": "1.0.0",
-  "description": "Tactical real-time Indian Sign Language (ISL) to voice and live 3D animated signs for Google Meet, Zoom, Teams, and video calls.",
+  "description": "Live Indian Sign Language animation overlay for deaf and mute individuals and real voice translation on Google Meet, Zoom, WhatsApp, and Teams.",
   "action": {
     "default_popup": "popup.html",
-    "default_title": "ECHOHANDS Meeting HUD Settings",
+    "default_title": "Echo-Hands Settings",
     "default_icon": {
       "16": "icons/icon16.png",
       "48": "icons/icon48.png",
@@ -22,16 +22,23 @@
   },
   "permissions": [
     "storage",
+    "tabs",
     "activeTab",
     "scripting"
   ],
   "host_permissions": [
+    "<all_urls>",
     "*://meet.google.com/*",
     "*://*.zoom.us/*",
     "*://teams.microsoft.com/*",
     "*://teams.live.com/*",
+    "*://web.whatsapp.com/*",
     "*://meet.jit.si/*",
-    "*://*.vercel.app/*",
+    "*://*.ngrok-free.dev/*",
+    "*://*.ngrok.io/*",
+    "*://*.loca.lt/*",
+    "*://*.onrender.com/*",
+    "*://*.railway.app/*",
     "*://localhost/*",
     "*://127.0.0.1/*"
   ],
@@ -42,6 +49,7 @@
         "*://*.zoom.us/*",
         "*://teams.microsoft.com/*",
         "*://teams.live.com/*",
+        "*://web.whatsapp.com/*",
         "*://meet.jit.si/*",
         "*://*.vercel.app/*",
         "*://localhost/*",

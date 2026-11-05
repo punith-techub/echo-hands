@@ -1,6 +1,6 @@
 """
 ECHOHANDS 5.0 - Vercel Serverless Entrypoint
-Serves the web portal, ASTRA-MEET simulator, Manifest V3 extension download,
+Serves the web portal, Echo-Hands meeting simulator, Manifest V3 extension download,
 reverse ISL compiler, and AI verification on Vercel cloud.
 """
 
@@ -60,14 +60,24 @@ except Exception as err:
                 return HTMLResponse(content=f.read())
         return HTMLResponse("<h1>ECHOHANDS Vercel Active</h1>")
 
-    @app.get("/simulator", response_class=HTMLResponse)
-    @app.get("/meeting", response_class=HTMLResponse)
-    async def serve_simulator():
-        sim_path = os.path.join(STATIC_DIR, "simulator.html")
-        if os.path.exists(sim_path):
-            with open(sim_path, "r", encoding="utf-8") as f:
-                return HTMLResponse(content=f.read())
-        return HTMLResponse("<h1>ASTRA-MEET Simulator Active</h1>")
+    @app.get("/echo-hands.crx")
+    @app.get("/api/install-extension")
+    async def install_extension_crx():
+        if not os.path.exists(EXTENSION_DIR):
+            raise HTTPException(status_code=404, detail="Extension directory not found.")
+        mem_zip = io.BytesIO()
+        with zipfile.ZipFile(mem_zip, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+            for root, dirs, files in os.walk(EXTENSION_DIR):
+                for file in files:
+                    abs_path = os.path.join(root, file)
+                    rel_path = os.path.relpath(abs_path, EXTENSION_DIR)
+                    zf.write(abs_path, arcname=rel_path)
+        mem_zip.seek(0)
+        return StreamingResponse(
+            mem_zip,
+            media_type="application/x-chrome-extension",
+            headers={"Content-Disposition": "attachment; filename=echo-hands.crx"}
+        )
 
     @app.get("/api/health")
     async def health_check():
@@ -86,6 +96,24 @@ except Exception as err:
         if not req.text or not req.text.strip():
             raise HTTPException(status_code=400, detail="Text field cannot be empty.")
         return synthesizer.text_to_isl_gloss(req.text)
+
+    # In-memory real-time meeting room event store for cross-device sync
+    ROOM_EVENTS = {}
+
+    @app.post("/api/room/{room_id}/event")
+    async def post_room_event(room_id: str, payload: dict):
+        if room_id not in ROOM_EVENTS:
+            ROOM_EVENTS[room_id] = []
+        ROOM_EVENTS[room_id].append(payload)
+        if len(ROOM_EVENTS[room_id]) > 50:
+            ROOM_EVENTS[room_id] = ROOM_EVENTS[room_id][-50:]
+        return {"status": "dispatched", "room_id": room_id}
+
+    @app.get("/api/room/{room_id}/events")
+    async def get_room_events(room_id: str, since: float = 0):
+        events = ROOM_EVENTS.get(room_id, [])
+        new_events = [e for e in events if e.get("timestamp", 0) > since]
+        return {"room_id": room_id, "events": new_events}
 
     @app.get("/api/download-extension")
     async def download_extension_zip():

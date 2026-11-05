@@ -1,5 +1,5 @@
 /**
- * ECHOHANDS 5.0 // ASTRA-VISION 3D Rigged WebGL ISL Avatar Engine
+ * ECHO-HANDS // 3D Rigged WebGL Indian Sign Language Avatar Engine
  * Renders an interactive 3D humanoid avatar with articulated joint kinematics,
  * finger articulation, and smooth co-articulation animation blending for ISL signs.
  */
@@ -233,6 +233,13 @@ class ISL3DAvatar {
 
   // Set 3D target pose for gesture
   setPose(pose, transitionTime = 0.25) {
+    // Visual emphasis / recoil on each gesture trigger so repeated signs visibly nod and pulse
+    if (this.joints.torso) {
+      this.joints.torso.position.z = 0.03;
+    }
+    if (this.joints.neck) {
+      this.joints.neck.rotation.x = 0.12;
+    }
     this.targetPose = JSON.parse(JSON.stringify(pose));
     this.poseTransitionTime = Math.max(0.08, transitionTime / this.speedMultiplier);
     this.poseTransitionProgress = 0.0;
@@ -432,6 +439,10 @@ class ISL3DAvatar {
   // Play a sequence of signs with co-articulation
   playSequence(tokens, onTokenChange = null, onComplete = null) {
     if (!tokens || tokens.length === 0) return;
+    if (this.activeTimer) {
+      clearTimeout(this.activeTimer);
+      this.activeTimer = null;
+    }
     this.animationQueue = [...tokens];
     this.onTokenChange = onTokenChange;
     this.onComplete = onComplete;
@@ -458,7 +469,8 @@ class ISL3DAvatar {
 
     this.setPose(pose, 0.25);
 
-    setTimeout(() => {
+    this.activeTimer = setTimeout(() => {
+      this.activeTimer = null;
       this.playNextSign();
     }, holdDuration / this.speedMultiplier);
   }

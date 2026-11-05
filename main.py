@@ -38,7 +38,7 @@ if __name__ == "__main__":
     port = args.port or resolve_port(8000)
 
     print("=" * 70)
-    print("  ECHOHANDS 5.0 // ASTRA-VISION TACTICAL NEURAL HUD")
+    print("  ECHO-HANDS // REAL-TIME ISL & VOICE MEETING TRANSLATOR")
     print("  Real-time Indian Sign Language (ISL) to Text & Speech Translator")
     print(f"  Server active at: http://localhost:{port}")
     print("=" * 70)

@@ -1,88 +1,129 @@
 /**
- * ECHOHANDS Extension Popup Controller
+ * Echo-Hands // Extension Popup Controller
+ * Manages Python AI Backend URL and live connection status.
  */
 
 document.addEventListener("DOMContentLoaded", () => {
-  const meetingBadge = document.getElementById("meeting-badge");
-  const roleSigner = document.getElementById("role-signer");
-  const roleSpeaker = document.getElementById("role-speaker");
-  const langSelect = document.getElementById("lang-select");
-  const autoVoiceToggle = document.getElementById("auto-voice-toggle");
-  const avatarToggle = document.getElementById("avatar-toggle");
-  const btnToggleHUD = document.getElementById("btn-toggle-hud");
-  const btnOpenSimulator = document.getElementById("btn-open-simulator");
+  const backendInput = document.getElementById("eh-backend-input");
+  const backendSaveBtn = document.getElementById("eh-backend-save-btn");
+  const backendStatusTxt = document.getElementById("eh-backend-status-txt");
+  const statusBadge = document.querySelector(".status-badge");
 
-  // Load saved state
-  if (chrome.storage && chrome.storage.local) {
-    chrome.storage.local.get(["role", "language", "autoVoice", "avatarVisible"], (res) => {
-      if (res.role === "speaker") {
-        roleSpeaker.classList.add("active");
-        roleSigner.classList.remove("active");
-      } else {
-        roleSigner.classList.add("active");
-        roleSpeaker.classList.remove("active");
+  const DEFAULT_BACKEND = "https://python-crouch-bucked.ngrok-free.dev";
+
+  function resolveValidUrl(url) {
+    if (!url || typeof url !== "string") return DEFAULT_BACKEND;
+    const clean = url.trim().replace(/\/+$/, "");
+    // Auto-migrate away from expired/rate-limited tunnels
+    if (clean.includes("dark-dogs-flash") || clean.includes("loca.lt") || clean.length < 8) {
+      return DEFAULT_BACKEND;
+    }
+    return clean;
+  }
+
+  // Load saved backend URL with auto-migration
+  if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+    chrome.storage.local.get(["backend_url"], (res) => {
+      const savedUrl = resolveValidUrl(res ? res.backend_url : null);
+      if (backendInput) backendInput.value = savedUrl;
+      testConnection(savedUrl);
+    });
+  } else {
+    const raw = localStorage.getItem("echohands_backend_url");
+    const savedUrl = resolveValidUrl(raw);
+    if (backendInput) backendInput.value = savedUrl;
+    testConnection(savedUrl);
+  }
+
+  // Save backend URL
+  if (backendSaveBtn && backendInput) {
+    backendSaveBtn.addEventListener("click", () => {
+      let rawUrl = backendInput.value.trim().replace(/\/+$/, "");
+      if (!rawUrl) rawUrl = DEFAULT_BACKEND;
+      backendInput.value = rawUrl;
+
+      // Save to chrome.storage.local
+      if (typeof chrome !== "undefined" && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.set({ backend_url: rawUrl }, () => {
+          console.log("[Echo-Hands Popup] Saved backend URL:", rawUrl);
+        });
       }
 
-      if (res.language) langSelect.value = res.language;
-      if (res.autoVoice !== undefined) autoVoiceToggle.checked = res.autoVoice;
-      if (res.avatarVisible !== undefined) avatarToggle.checked = res.avatarVisible;
+      // Save to localStorage
+      try {
+        localStorage.setItem("echohands_backend_url", rawUrl);
+      } catch (e) {}
+
+      // Notify active tabs about new backend URL
+      if (typeof chrome !== "undefined" && chrome.tabs && chrome.tabs.query) {
+        chrome.tabs.query({}, (tabs) => {
+          if (tabs && tabs.length > 0) {
+            tabs.forEach((tab) => {
+              if (tab.id) {
+                chrome.tabs.sendMessage(tab.id, { type: "UPDATE_BACKEND_URL", url: rawUrl }).catch(() => {});
+              }
+            });
+          }
+        });
+      }
+
+      // Visual button feedback
+      backendSaveBtn.textContent = "Saved ✓";
+      backendSaveBtn.style.background = "#00ffcc";
+      if (backendStatusTxt) {
+        backendStatusTxt.textContent = "Testing connection to " + rawUrl + "...";
+        backendStatusTxt.style.color = "#00e6b4";
+      }
+
+      testConnection(rawUrl);
+
+      setTimeout(() => {
+        if (backendSaveBtn) {
+          backendSaveBtn.textContent = "Save";
+          backendSaveBtn.style.background = "#00e6b4";
+        }
+      }, 1800);
     });
   }
 
-  // Check active meeting status
-  if (chrome.runtime && chrome.runtime.sendMessage) {
-    chrome.runtime.sendMessage({ type: "GET_ACTIVE_MEETING_STATUS" }, (res) => {
-      if (res && res.isMeeting) {
-        meetingBadge.textContent = "MEETING ACTIVE";
-        meetingBadge.classList.remove("inactive");
+  // Test live backend connection
+  async function testConnection(url) {
+    if (!url) return;
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+      const res = await fetch(`${url}/api/health`, {
+        headers: { 
+          "Bypass-Tunnel-Reminder": "true",
+          "ngrok-skip-browser-warning": "69420"
+        },
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (res.ok) {
+        const data = await res.json();
+        if (backendStatusTxt) {
+          backendStatusTxt.textContent = "✓ Connected to Python AI Brain!";
+          backendStatusTxt.style.color = "#00e6b4";
+        }
+        if (statusBadge) {
+          statusBadge.textContent = "✓ AI Backend Online";
+          statusBadge.style.color = "#00e6b4";
+          statusBadge.style.borderColor = "rgba(0, 230, 180, 0.5)";
+        }
       } else {
-        meetingBadge.textContent = "STANDBY";
-        meetingBadge.classList.add("inactive");
+        if (backendStatusTxt) {
+          backendStatusTxt.textContent = "⚠️ Server responded with HTTP " + res.status;
+          backendStatusTxt.style.color = "#f59e0b";
+        }
       }
-    });
-  }
-
-  // Role selections
-  roleSigner.addEventListener("click", () => {
-    roleSigner.classList.add("active");
-    roleSpeaker.classList.remove("active");
-    saveConfig({ role: "signer" });
-  });
-
-  roleSpeaker.addEventListener("click", () => {
-    roleSpeaker.classList.add("active");
-    roleSigner.classList.remove("active");
-    saveConfig({ role: "speaker" });
-  });
-
-  langSelect.addEventListener("change", () => {
-    saveConfig({ language: langSelect.value });
-  });
-
-  autoVoiceToggle.addEventListener("change", () => {
-    saveConfig({ autoVoice: autoVoiceToggle.checked });
-  });
-
-  avatarToggle.addEventListener("change", () => {
-    saveConfig({ avatarVisible: avatarToggle.checked });
-  });
-
-  // Toggle HUD on active tab
-  btnToggleHUD.addEventListener("click", () => {
-    chrome.runtime.sendMessage({ type: "TRIGGER_HUD_TOGGLE" });
-    window.close();
-  });
-
-  // Open Simulator
-  btnOpenSimulator.addEventListener("click", () => {
-    const simUrl = chrome.runtime.getURL ? chrome.runtime.getURL("simulator.html") : "http://localhost:8000/simulator";
-    // Check if we are hosted locally or on Vercel
-    chrome.tabs.create({ url: "http://localhost:8000/simulator" });
-  });
-
-  function saveConfig(obj) {
-    if (chrome.storage && chrome.storage.local) {
-      chrome.storage.local.set(obj);
+    } catch (e) {
+      if (backendStatusTxt) {
+        backendStatusTxt.textContent = "⚠️ Cannot reach server. Is Python running?";
+        backendStatusTxt.style.color = "#ef4444";
+      }
     }
   }
 });

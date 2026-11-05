@@ -1,7 +1,7 @@
-# ECHOHANDS 5.0 // ASTRA-VISION TACTICAL NEURAL HUD
+# Echo-Hands // Real-Time ISL & Voice Meeting Translator
 **Real-Time Indian Sign Language (ISL) to Voice & Live 3D Sign Avatar Meeting Translator (Phase-3)**
 
-ECHOHANDS is an end-to-end assistive neural system and Manifest V3 Chrome Extension designed for bidirectional communication between Deaf/Mute individuals and Hearing individuals in online video meetings (Google Meet, Zoom, Microsoft Teams, and WebRTC calls).
+Echo-Hands is an end-to-end assistive neural system and Manifest V3 Chrome Extension designed for bidirectional communication between Deaf/Mute individuals and Hearing individuals in online video meetings (Google Meet, Zoom, Microsoft Teams, and WebRTC calls).
 
 - **Deaf / Mute User Signs ISL $\longrightarrow$ Hearing User Hears Real Voice**: Converts Indian Sign Language gestures in real time into fluent English and Hindi speech, voiced aloud over the meeting call.
 - **Hearing User Speaks Voice $\longrightarrow$ Deaf / Mute User Sees Live 3D Animated Signs**: Continuously transcribes spoken voice and renders a real-time, rigged 3D WebGL Avatar performing Indian Sign Language gestures and finger-spelling directly on screen!
@@ -12,7 +12,11 @@ ECHOHANDS is an end-to-end assistive neural system and Manifest V3 Chrome Extens
 
 1. **Manifest V3 Chrome Extension & Video Call Detector**:
    - Detects when the user opens Google Meet (`meet.google.com`), Zoom (`zoom.us`), Microsoft Teams, or WebRTC calls.
-   - Spawns the floating **ASTRA-VISION Tactical Meeting HUD** with live draggable controls, mode switching, and real-time captions.
+   - Prompts the user: *"Enable Echo-Hands for this meeting?"*.
+     - If No $\rightarrow$ sleeps quietly in the corner without disturbing the call.
+     - If Yes $\rightarrow$ asks: *"Are you physically disabled (Deaf & Mute)?"*.
+       - If Deaf/Mute $\rightarrow$ spawns a sleek, transparent HUD displaying live 3D Indian Sign Language animations.
+       - If Normal Hearing $\rightarrow$ avoids visual clutter and simply speaks the deaf person's signs out in natural human voice!
 
 2. **Rigged 3D WebGL ISL Avatar (`extension/avatar.js`)**:
    - Built with Three.js; features articulated shoulders, elbows, wrists, and 10 individually articulated finger joints.
@@ -28,7 +32,8 @@ ECHOHANDS is an end-to-end assistive neural system and Manifest V3 Chrome Extens
    - Continuous Web Speech Recognition (STT) for the hearing participant.
    - Zero-latency synchronization across browser tabs and video calls via BroadcastChannel & WebRTC.
 
-5. **ASTRA-MEET Virtual Meeting Simulator (`/simulator`)**:
+5. **Echo-Hands Virtual Meeting Simulator (`/simulator`)**:
+   - Split-screen live call simulator accessible directly from the browser/Vercel URL to test both directions instantly without opening external apps.
    - Split-screen live call simulator accessible directly from the browser/Vercel URL to test both directions instantly without opening external apps.
 
 6. **Dual-Brain Hybrid Neural Architecture & Continuous Learning**:
@@ -65,8 +70,8 @@ ECHOHANDS/
 │   ├── train.py                # 80/20 Stratified benchmark training pipeline
 │   └── app.py                  # FastAPI server & REST APIs
 ├── static/
-│   ├── index.html              # ASTRA-VISION Tactical Cockpit & Download Center
-│   ├── simulator.html          # ASTRA-MEET Live Dual Video Meeting Simulator
+│   ├── index.html              # Clean Futuristic Landing Page (Three.js 3D animation)
+│   ├── simulator.html          # Echo-Hands Live Dual Video Meeting Simulator
 │   ├── styles.css              # Cyber-cockpit dark stylesheet
 │   └── app.js                  # Frontend HUD telemetry controller
 ├── models/                     # Trained weights, memory file, confusion matrix, ROC
@@ -83,7 +88,7 @@ ECHOHANDS/
 ## How to Install the Chrome Extension
 
 1. **Download the Extension**:
-   - Open your deployed Vercel link (or `http://localhost:8000`) and click **"DOWNLOAD EXTENSION (.ZIP)"** (or use the `/extension` folder directly from this repo).
+   - Open your deployed Vercel link (or `http://localhost:8000`) and click **"Add as Extension"** (or use the `extension/` folder directly from this repo).
    - Extract the `.zip` file into a local folder.
 2. **Load into Google Chrome**:
    - Open Google Chrome and navigate to: `chrome://extensions/`
@@ -91,8 +96,8 @@ ECHOHANDS/
    - Click the **"Load unpacked"** button in the top-left corner.
    - Select the `extension/` directory.
 3. **Join a Meeting**:
-   - Open [Google Meet](https://meet.google.com/), Zoom Web, or the built-in [ASTRA-MEET Simulator](http://localhost:8000/simulator).
-   - The **ASTRA-VISION Meeting HUD** will automatically spawn in the call!
+   - Open [Google Meet](https://meet.google.com/), Zoom Web, or the built-in [Echo-Hands Simulator](http://localhost:8000/simulator).
+   - Echo-Hands will automatically pop up and ask to enable for this call!
 
 ---
 
@@ -101,7 +106,7 @@ ECHOHANDS/
 1. Push your repository to **GitHub**:
    ```bash
    git add .
-   git commit -m "feat: ECHOHANDS Phase-3 Chrome Extension & 3D ISL Avatar"
+   git commit -m "feat: Echo-Hands Chrome Extension, 3D ISL Avatar & Futuristic Landing Page"
    git push origin main
    ```
 2. Log into **[Vercel](https://vercel.com/)** and click **"Add New Project"** $\rightarrow$ Import your GitHub repo.
@@ -110,7 +115,7 @@ ECHOHANDS/
    - `GEMINI_API_KEY`: *(Optional)* Your Google Gemini API key.
    - `OPENAI_API_KEY`: *(Optional)* Your OpenAI key.
 4. Click **Deploy**. Vercel will build and deploy your site in seconds!
-5. Users can now visit your Vercel URL, click **Download Chrome Extension**, and use the built-in **ASTRA-MEET Simulator** or Google Meet.
+5. Users can now visit your Vercel URL, click **Add as Extension**, and test with the built-in **Echo-Hands Simulator** or Google Meet.
 
 ---
 

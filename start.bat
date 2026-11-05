@@ -1,7 +1,7 @@
 @echo off
-title ECHOHANDS 5.0 - Tactical Neural ISL Translator
+title Echo-Hands - Real-Time ISL & Voice Meeting Translator
 echo ======================================================================
-echo   ECHOHANDS 5.0 // ASTRA-VISION TACTICAL NEURAL HUD
+echo   ECHO-HANDS // REAL-TIME ISL & VOICE MEETING TRANSLATOR
 echo   Indian Sign Language (ISL) to Text & Synthesized Speech Translator
 echo ======================================================================
 echo.

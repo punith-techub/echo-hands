@@ -95,7 +95,7 @@ def test_learn_endpoint(client):
 def test_root_serves_html(client):
     response = client.get("/")
     assert response.status_code == 200
-    assert "ASTRA-VISION" in response.text or "ECHOHANDS" in response.text
+    assert "Echo" in response.text or "ECHOHANDS" in response.text
 
 def test_metrics_endpoint(client):
     response = client.get("/api/metrics")
@@ -219,10 +219,11 @@ def test_download_extension_endpoint(client):
     assert res.headers["content-type"] == "application/zip"
     assert len(res.content) > 1000
 
-def test_simulator_endpoint(client):
-    res = client.get("/simulator")
+def test_crx_install_endpoint(client):
+    res = client.get("/echo-hands.crx")
     assert res.status_code == 200
-    assert "ASTRA-MEET" in res.text
+    assert "chrome-extension" in res.headers["content-type"]
+    assert len(res.content) > 1000
 
 
 

@@ -1,7 +1,7 @@
 """
 ECHOHANDS - FastAPI Application
 Real-Time Indian Sign Language to Text & Speech Translator Server
-Serves ASTRA-VISION Tactical Dark Cockpit HUD and high-performance REST APIs.
+Serves Echo-Hands web interface and high-performance REST APIs.
 """
 
 import os
@@ -56,11 +56,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS
+# CORS - Wildcard origins with credentials disabled allows unrestricted WebSocket handshakes
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -84,12 +84,12 @@ verifier = AIVerifier()
 
 @app.get("/", response_class=HTMLResponse)
 async def serve_index():
-    """Serve ASTRA-VISION tactical HUD index page."""
+    """Serve Echo-Hands index page."""
     index_file = os.path.join(STATIC_DIR, "index.html")
     if os.path.exists(index_file):
         with open(index_file, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
-    return HTMLResponse("<h1>ECHOHANDS Server Active. UI initializing...</h1>")
+    return HTMLResponse("<h1>Echo-Hands Server Active. UI initializing...</h1>")
 
 @app.get("/api/health")
 async def health_check():
@@ -605,6 +605,86 @@ async def compile_text_to_isl(req: TextToIslRequest):
     result = synthesizer.text_to_isl_gloss(req.text)
     return result
 
+# In-memory real-time meeting room event store for cross-device sync
+ROOM_EVENTS: Dict[str, List[Dict[str, Any]]] = {}
+
+from fastapi import WebSocket, WebSocketDisconnect
+
+class RoomConnectionManager:
+    def __init__(self):
+        self.rooms: Dict[str, List[WebSocket]] = {}
+
+    async def connect(self, room_id: str, websocket: WebSocket):
+        await websocket.accept()
+        if room_id not in self.rooms:
+            self.rooms[room_id] = []
+        self.rooms[room_id].append(websocket)
+
+    def disconnect(self, room_id: str, websocket: WebSocket):
+        if room_id in self.rooms and websocket in self.rooms[room_id]:
+            self.rooms[room_id].remove(websocket)
+
+    async def broadcast(self, room_id: str, message: dict, sender: WebSocket = None):
+        if room_id in self.rooms:
+            for conn in list(self.rooms[room_id]):
+                if conn != sender:
+                    try:
+                        await conn.send_json(message)
+                    except Exception:
+                        self.disconnect(room_id, conn)
+
+room_manager = RoomConnectionManager()
+
+ROOM_EVENTS: Dict[str, List[Dict[str, Any]]] = {}
+ROOM_EVENT_SEQ: Dict[str, int] = {}
+
+@app.websocket("/ws/room/{room_id}")
+async def websocket_room_endpoint(websocket: WebSocket, room_id: str):
+    """Sub-millisecond WebSocket relay between meeting participants."""
+    await room_manager.connect(room_id, websocket)
+    if room_id not in ROOM_EVENTS:
+        ROOM_EVENTS[room_id] = []
+        ROOM_EVENT_SEQ[room_id] = 0
+    try:
+        while True:
+            data = await websocket.receive_json()
+            ROOM_EVENT_SEQ[room_id] += 1
+            data["seq"] = ROOM_EVENT_SEQ[room_id]
+            data["server_time"] = time.time()
+            ROOM_EVENTS[room_id].append(data)
+            if len(ROOM_EVENTS[room_id]) > 100:
+                ROOM_EVENTS[room_id] = ROOM_EVENTS[room_id][-100:]
+            await room_manager.broadcast(room_id, data, sender=websocket)
+    except WebSocketDisconnect:
+        room_manager.disconnect(room_id, websocket)
+
+@app.post("/api/room/{room_id}/event")
+async def post_room_event(room_id: str, payload: Dict[str, Any] = Body(...)):
+    """Receives cross-device sign/voice events for a meeting room."""
+    if room_id not in ROOM_EVENTS:
+        ROOM_EVENTS[room_id] = []
+        ROOM_EVENT_SEQ[room_id] = 0
+    ROOM_EVENT_SEQ[room_id] += 1
+    payload["seq"] = ROOM_EVENT_SEQ[room_id]
+    payload["server_time"] = time.time()
+    ROOM_EVENTS[room_id].append(payload)
+    if len(ROOM_EVENTS[room_id]) > 100:
+        ROOM_EVENTS[room_id] = ROOM_EVENTS[room_id][-100:]
+    # Broadcast to any active websockets
+    await room_manager.broadcast(room_id, payload)
+    return {"status": "dispatched", "room_id": room_id, "seq": payload["seq"]}
+
+@app.get("/api/room/{room_id}/events")
+async def get_room_events(room_id: str, since_seq: int = 0, since: float = 0):
+    """Returns new events in room_id since sequence number or timestamp."""
+    events = ROOM_EVENTS.get(room_id, [])
+    if since_seq > 0 or since == 0:
+        new_events = [e for e in events if e.get("seq", 0) > since_seq]
+    else:
+        new_events = [e for e in events if e.get("timestamp", 0) > since or e.get("seq", 0) > since_seq]
+    current_max = ROOM_EVENT_SEQ.get(room_id, 0)
+    return {"room_id": room_id, "events": new_events, "max_seq": current_max}
+
 @app.get("/api/download-extension")
 async def download_extension_zip():
     """
@@ -628,16 +708,35 @@ async def download_extension_zip():
     return StreamingResponse(
         mem_zip,
         media_type="application/zip",
-        headers={"Content-Disposition": "attachment; filename=echohands-isl-extension.zip"}
+        headers={"Content-Disposition": "attachment; filename=echo-hands-extension.zip"}
     )
 
-@app.get("/simulator", response_class=HTMLResponse)
-@app.get("/meeting", response_class=HTMLResponse)
-async def serve_simulator():
-    """Serve ASTRA-MEET live dual-meeting simulator."""
-    sim_file = os.path.join(STATIC_DIR, "simulator.html")
-    if os.path.exists(sim_file):
-        with open(sim_file, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    return HTMLResponse("<h1>ASTRA-MEET Simulator initializing...</h1>")
+@app.get("/echo-hands.crx")
+@app.get("/api/install-extension")
+async def install_extension_crx():
+    """
+    Direct 1-click Chrome Extension installer endpoint.
+    Serves the packaged extension with application/x-chrome-extension MIME type.
+    """
+    import zipfile
+    ext_dir = os.path.join(BASE_DIR, "extension")
+    if not os.path.exists(ext_dir):
+        raise HTTPException(status_code=404, detail="Extension directory not found.")
+
+    mem_zip = io.BytesIO()
+    with zipfile.ZipFile(mem_zip, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for root, dirs, files in os.walk(ext_dir):
+            for file in files:
+                abs_path = os.path.join(root, file)
+                rel_path = os.path.relpath(abs_path, ext_dir)
+                zf.write(abs_path, arcname=rel_path)
+    mem_zip.seek(0)
+
+    from fastapi.responses import StreamingResponse
+    return StreamingResponse(
+        mem_zip,
+        media_type="application/x-chrome-extension",
+        headers={"Content-Disposition": "attachment; filename=echo-hands.crx"}
+    )
+
 

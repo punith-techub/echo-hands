@@ -12,11 +12,7 @@
       "dest": "api/index.py"
     },
     {
-      "src": "/simulator",
-      "dest": "api/index.py"
-    },
-    {
-      "src": "/meeting",
+      "src": "/echo-hands.crx",
       "dest": "api/index.py"
     },
     {

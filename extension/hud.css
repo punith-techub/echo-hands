@@ -1,268 +1,476 @@
 /**
- * ECHOHANDS 5.0 // ASTRA-VISION Tactical Meeting HUD Stylesheet
- * Injected into Google Meet, Zoom, Teams, and Meeting Simulators.
+ * Echo-Hands // Simple Transparent Sign Language Overlay Stylesheet
  */
 
-#echohands-hud-overlay {
-  position: fixed;
-  top: 30px;
-  right: 30px;
-  width: 580px;
-  max-width: 95vw;
-  background: rgba(6, 11, 16, 0.94);
-  border: 1px solid rgba(0, 230, 180, 0.4);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 230, 180, 0.15);
-  border-radius: 8px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "JetBrains Mono", monospace;
-  color: #e0f2f1;
-  z-index: 2147483647;
-  user-select: none;
-  backdrop-filter: blur(12px);
-  transition: box-shadow 0.2s ease, opacity 0.2s ease;
-  overflow: hidden;
+/* 1. Sleek In-Call Prompt Card - Center Top of Meeting */
+#echohands-prompt-container {
+  position: fixed !important;
+  top: 28px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 2147483647 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  animation: ehPromptSlide 0.28s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  pointer-events: auto !important;
 }
 
-#echohands-hud-overlay.minimized {
-  width: 280px;
+@keyframes ehPromptSlide {
+  from { opacity: 0; transform: translate(-50%, -18px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
 }
 
-#echohands-hud-overlay.minimized .hud-body,
-#echohands-hud-overlay.minimized .hud-captions-dock,
-#echohands-hud-overlay.minimized .hud-telemetry {
-  display: none !important;
+.eh-prompt-box {
+  background: rgba(10, 16, 24, 0.96) !important;
+  backdrop-filter: blur(18px) !important;
+  border: 1px solid rgba(0, 230, 180, 0.5) !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.85), 0 0 24px rgba(0, 230, 180, 0.25) !important;
+  border-radius: 14px !important;
+  padding: 16px 22px !important;
+  color: #ffffff !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  min-width: 340px !important;
+  text-align: center !important;
 }
 
-/* Header Bar */
-.hud-header-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 8px 14px;
-  background: linear-gradient(90deg, rgba(0, 40, 45, 0.9), rgba(6, 15, 22, 0.95));
-  border-bottom: 1px solid rgba(0, 230, 180, 0.25);
-  cursor: grab;
+.eh-prompt-title {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: #00e6b4 !important;
 }
 
-.hud-header-bar:active {
-  cursor: grabbing;
+.eh-dot {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: #00e6b4 !important;
+  box-shadow: 0 0 10px #00e6b4 !important;
 }
 
-.hud-title-wrap {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+.eh-prompt-btns {
+  display: flex !important;
+  gap: 12px !important;
+  justify-content: center !important;
 }
 
-.hud-status-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #00e6b4;
-  box-shadow: 0 0 8px #00e6b4;
-  animation: hudPulse 2s infinite;
+.eh-btn-main {
+  flex: 1 !important;
+  background: #00e6b4 !important;
+  color: #041014 !important;
+  border: none !important;
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  padding: 10px 16px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
 }
 
-@keyframes hudPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(0.85); }
+.eh-btn-main:hover {
+  background: #00ffcc !important;
+  box-shadow: 0 0 16px rgba(0, 230, 180, 0.5) !important;
+  transform: translateY(-1px) !important;
 }
 
-.hud-title-text {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  color: #00e6b4;
+.eh-btn-sub {
+  flex: 1 !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #b0bec5 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 10px 16px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.2s !important;
 }
 
-.hud-role-switcher {
-  display: flex;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid rgba(0, 230, 180, 0.3);
-  border-radius: 4px;
-  padding: 2px;
-  gap: 2px;
+.eh-btn-sub:hover {
+  background: rgba(255, 255, 255, 0.16) !important;
+  color: #ffffff !important;
 }
 
-.role-btn {
-  background: transparent;
-  border: none;
-  color: #80cbc4;
-  font-size: 10px;
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 3px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+/* 2. Simple Transparent Overlay for Deaf & Mute Person */
+#echohands-sign-overlay {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  width: 330px !important;
+  background: rgba(6, 12, 18, 0.72) !important; /* Transparent dark glass */
+  backdrop-filter: blur(14px) !important;
+  border: 1px solid rgba(0, 230, 180, 0.4) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.7), 0 0 24px rgba(0, 230, 180, 0.2) !important;
+  z-index: 2147483647 !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  user-select: none !important;
+  animation: ehOverlayPop 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
 }
 
-.role-btn.active {
-  background: #00e6b4;
-  color: #041014;
-  font-weight: 700;
-  box-shadow: 0 0 10px rgba(0, 230, 180, 0.4);
+@keyframes ehOverlayPop {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
 }
 
-.hud-controls {
-  display: flex;
-  gap: 6px;
+.eh-overlay-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 10px 14px !important;
+  background: rgba(0, 0, 0, 0.45) !important;
+  cursor: grab !important;
+  border-bottom: 1px solid rgba(0, 230, 180, 0.2) !important;
 }
 
-.hud-ctrl-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #b0bec5;
-  width: 22px;
-  height: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 12px;
+.eh-overlay-header:active {
+  cursor: grabbing !important;
 }
 
-.hud-ctrl-btn:hover {
-  background: rgba(0, 230, 180, 0.2);
-  color: #00e6b4;
-  border-color: #00e6b4;
+.eh-overlay-label {
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #00e6b4 !important;
+  letter-spacing: 0.5px !important;
 }
 
-/* Body (Two Panes) */
-.hud-body {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  padding: 12px;
-  background: rgba(4, 8, 12, 0.95);
+.eh-overlay-close {
+  background: transparent !important;
+  border: none !important;
+  color: #94a3b8 !important;
+  font-size: 16px !important;
+  cursor: pointer !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
 }
 
-.hud-pane {
-  background: rgba(10, 18, 25, 0.7);
-  border: 1px solid rgba(0, 230, 180, 0.18);
-  border-radius: 6px;
-  padding: 8px;
-  display: flex;
-  flex-direction: column;
+.eh-overlay-close:hover {
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.1) !important;
 }
 
-.pane-heading {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: #80cbc4;
-  margin-bottom: 6px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.eh-avatar-viewport {
+  width: 100% !important;
+  height: 250px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  position: relative !important;
 }
 
-.pane-viewport {
-  position: relative;
-  width: 100%;
-  height: 180px;
-  background: #020508;
-  border-radius: 4px;
-  overflow: hidden;
-  border: 1px solid rgba(0, 230, 180, 0.15);
+.eh-avatar-viewport canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block !important;
 }
 
-.pane-viewport video,
-.pane-viewport canvas {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
+.eh-overlay-badge {
+  position: absolute !important;
+  top: 8px !important;
+  left: 8px !important;
+  background: rgba(0, 20, 25, 0.85) !important;
+  border: 1px solid #00e6b4 !important;
+  color: #00e6b4 !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  padding: 3px 8px !important;
+  border-radius: 4px !important;
 }
 
-.overlay-badge {
-  position: absolute;
-  top: 6px;
-  left: 6px;
-  background: rgba(0, 20, 25, 0.8);
-  border: 1px solid #00e6b4;
-  color: #00e6b4;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 3px;
-  letter-spacing: 0.5px;
+/* Deaf Quick Sign Action Bar */
+.eh-quick-sign-bar {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 4px !important;
+  padding: 8px 10px !important;
+  background: rgba(3, 8, 12, 0.85) !important;
+  border-top: 1px solid rgba(0, 230, 180, 0.15) !important;
 }
 
-.pane-controls {
-  margin-top: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
+.eh-sign-pill-btn {
+  background: rgba(0, 230, 180, 0.12) !important;
+  border: 1px solid rgba(0, 230, 180, 0.35) !important;
+  color: #00e6b4 !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  transition: all 0.15s !important;
 }
 
-.tactical-btn-mini {
-  background: rgba(0, 230, 180, 0.1);
-  border: 1px solid rgba(0, 230, 180, 0.35);
-  color: #00e6b4;
-  font-size: 9px;
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 3px;
-  cursor: pointer;
-  transition: all 0.15s ease;
+.eh-sign-pill-btn:hover {
+  background: #00e6b4 !important;
+  color: #041014 !important;
 }
 
-.tactical-btn-mini:hover {
-  background: #00e6b4;
-  color: #020a0d;
+.eh-deaf-subtitles {
+  padding: 8px 12px !important;
+  background: rgba(2, 6, 10, 0.95) !important;
+  font-size: 12px !important;
+  color: #e0f2f1 !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.05) !important;
+  min-height: 32px !important;
 }
 
-/* Captions & Subtitles Dock */
-.hud-captions-dock {
-  padding: 10px 14px;
-  background: rgba(2, 6, 10, 0.95);
-  border-top: 1px solid rgba(0, 230, 180, 0.2);
+/* 3. Floating Voice Relay Bar for Normal Hearing Person */
+#echohands-normal-bar {
+  position: fixed !important;
+  bottom: 24px !important;
+  right: 24px !important;
+  background: rgba(6, 12, 18, 0.92) !important;
+  backdrop-filter: blur(14px) !important;
+  border: 1px solid rgba(0, 230, 180, 0.4) !important;
+  border-radius: 12px !important;
+  padding: 10px 14px !important;
+  color: #e0f2f1 !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
+  z-index: 2147483647 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7) !important;
+  min-width: 300px !important;
+  max-width: 360px !important;
 }
 
-.captions-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 9px;
-  font-weight: 700;
-  color: #00e6b4;
-  letter-spacing: 1px;
-  margin-bottom: 4px;
+.eh-normal-row1 {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  color: #00e6b4 !important;
 }
 
-.captions-box {
-  background: rgba(0, 25, 30, 0.5);
-  border: 1px solid rgba(0, 230, 180, 0.3);
-  border-radius: 4px;
-  padding: 8px 10px;
-  min-height: 44px;
+.eh-normal-status {
+  font-size: 12px !important;
+  color: #cbd5e1 !important;
+  background: rgba(0, 20, 25, 0.6) !important;
+  padding: 6px 10px !important;
+  border-radius: 6px !important;
+  border: 1px solid rgba(0, 230, 180, 0.2) !important;
 }
 
-.caption-primary {
-  font-size: 13px;
-  font-weight: 600;
-  color: #ffffff;
-  line-height: 1.3;
+.eh-normal-quick-btns {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 4px !important;
 }
 
-.caption-secondary {
-  font-size: 11px;
-  color: #80cbc4;
-  margin-top: 2px;
+.eh-voice-pill-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #cbd5e1 !important;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  padding: 3px 6px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
 }
 
-/* Telemetry Footer */
-.hud-telemetry {
-  display: flex;
-  justify-content: space-between;
-  padding: 6px 14px;
-  background: #03070a;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
-  font-size: 9px;
-  color: #546e7a;
-  letter-spacing: 0.5px;
+.eh-voice-pill-btn:hover {
+  background: #00e6b4 !important;
+  color: #041014 !important;
+  border-color: #00e6b4 !important;
 }
 
-.hud-telemetry span.active {
-  color: #00e6b4;
+.eh-normal-input-wrap {
+  display: flex !important;
+  gap: 6px !important;
+}
+
+.eh-normal-input {
+  flex: 1 !important;
+  background: #03080d !important;
+  border: 1px solid rgba(0, 230, 180, 0.3) !important;
+  color: #00e6b4 !important;
+  font-size: 11px !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+  outline: none !important;
+}
+
+.eh-normal-send-btn {
+  background: #00e6b4 !important;
+  color: #041014 !important;
+  border: none !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  padding: 4px 10px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+}
+
+/* 4. Camera PIP Preview in Avatar Viewport */
+.eh-cam-pip {
+  position: absolute !important;
+  bottom: 8px !important;
+  right: 8px !important;
+  width: 84px !important;
+  height: 64px !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(0, 230, 180, 0.4) !important;
+  background: #000000 !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+  z-index: 10 !important;
+}
+
+.eh-cam-pip video {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  transform: scaleX(-1) !important; /* Mirror webcam */
+}
+
+.eh-pip-status {
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  background: rgba(0, 10, 15, 0.85) !important;
+  color: #00e6b4 !important;
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+  padding: 1px 0 !important;
+  letter-spacing: 0.3px !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* 5. Expandable A-Z Alphabet Tray */
+.eh-alphabet-tray {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 3px !important;
+  padding: 6px 8px !important;
+  background: rgba(2, 6, 10, 0.95) !important;
+  border-top: 1px solid rgba(0, 230, 180, 0.15) !important;
+  max-height: 80px !important;
+  overflow-y: auto !important;
+}
+
+.eh-alpha-btn {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border: 1px solid rgba(0, 230, 180, 0.25) !important;
+  color: #00e6b4 !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  padding: 2px 6px !important;
+  border-radius: 3px !important;
+  cursor: pointer !important;
+  min-width: 18px !important;
+  text-align: center !important;
+  transition: all 0.15s !important;
+}
+
+.eh-alpha-btn:hover {
+  background: #00e6b4 !important;
+  color: #041014 !important;
+  transform: scale(1.1) !important;
+}
+
+/* 6. Live Microphone Indicator & Voice Test Button */
+.eh-mic-indicator {
+  width: 8px !important;
+  height: 8px !important;
+  border-radius: 50% !important;
+  background: #64748b !important;
+  display: inline-block !important;
+  transition: all 0.25s !important;
+}
+
+.eh-mic-active {
+  background: #00e6b4 !important;
+  box-shadow: 0 0 8px #00e6b4 !important;
+  animation: ehMicPulse 1.4s infinite !important;
+}
+
+.eh-mic-err {
+  background: #f59e0b !important;
+  box-shadow: 0 0 6px #f59e0b !important;
+}
+
+@keyframes ehMicPulse {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.eh-test-voice-btn {
+  background: rgba(0, 230, 180, 0.15) !important;
+  border: 1px solid rgba(0, 230, 180, 0.4) !important;
+  color: #00e6b4 !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  padding: 2px 6px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  transition: all 0.15s !important;
+}
+
+.eh-test-voice-btn:hover {
+  background: #00e6b4 !important;
+  color: #041014 !important;
+}
+
+/* 7. Live Transcript styling for Echo-Hands in Google Meet chat */
+div[data-message-text*="Echo-Hands"] {
+  color: #00e6b4 !important;
+  font-weight: 600 !important;
+  background: rgba(0, 230, 180, 0.08) !important;
+  border-left: 3px solid #00e6b4 !important;
+  padding: 4px 8px !important;
+  border-radius: 4px !important;
+}
+
+/* 8. Deaf overlay keyboard input wrap */
+.eh-deaf-input-wrap {
+  display: flex !important;
+  gap: 6px !important;
+  padding: 6px 10px !important;
+  background: rgba(3, 8, 12, 0.95) !important;
+  border-top: 1px solid rgba(0, 230, 180, 0.2) !important;
+}
+
+.eh-hud-input {
+  flex: 1 !important;
+  background: #03080d !important;
+  border: 1px solid rgba(0, 230, 180, 0.35) !important;
+  color: #00e6b4 !important;
+  font-size: 11px !important;
+  padding: 5px 8px !important;
+  border-radius: 4px !important;
+  outline: none !important;
+  pointer-events: auto !important;
+}
+
+.eh-hud-input:focus {
+  border-color: #00ffcc !important;
+  box-shadow: 0 0 8px rgba(0, 230, 180, 0.3) !important;
+}
+
+.eh-hud-send-btn {
+  background: #00e6b4 !important;
+  color: #041014 !important;
+  border: none !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  padding: 5px 10px !important;
+  border-radius: 4px !important;
+  cursor: pointer !important;
+  pointer-events: auto !important;
+}
+
+.eh-hud-send-btn:hover {
+  background: #00ffcc !important;
 }
