@@ -51,11 +51,27 @@ class ISL3DAvatar {
     this.camera = new THREE.PerspectiveCamera(38, this.width / this.height, 0.1, 100);
     this.camera.position.set(0, 0.20, 1.85);
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "default" });
     this.renderer.setSize(this.width, this.height);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    this.renderer.setClearColor(0x060c11, 0.85);
+    this.renderer.setClearColor(0x060c11, 0.90);
+    this.renderer.domElement.style.position = "absolute";
+    this.renderer.domElement.style.top = "0";
+    this.renderer.domElement.style.left = "0";
+    this.renderer.domElement.style.width = "100%";
+    this.renderer.domElement.style.height = "100%";
+    this.renderer.domElement.style.zIndex = "1";
     this.container.appendChild(this.renderer.domElement);
+
+    setTimeout(() => {
+      if (this.container && this.renderer && this.camera) {
+        const w = this.container.clientWidth || 340;
+        const h = this.container.clientHeight || 250;
+        this.camera.aspect = w / h;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(w, h);
+      }
+    }, 120);
 
     // Dynamic 4-point tactical lighting for high-definition finger contrast
     const ambientLight = new THREE.AmbientLight(0x506575, 1.4);

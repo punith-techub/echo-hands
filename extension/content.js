@@ -44,12 +44,18 @@
 
       // 1. Normal person receives sign -> Speaks real voice aloud + chime!
       peerSync.onPeerSignReceived = (data) => {
+        // STRICT ROLE ENFORCEMENT: Only the hearing person tab speaks audio!
+        if (userChoice !== "normal") {
+          console.log("[Echo-Hands] Speech synthesis blocked: This tab is configured for DEAF user (userChoice=" + userChoice + ").");
+          return;
+        }
+
         console.log("%c[Echo-Hands] Normal person received sign event:", "color: #00e6b4;", data);
         const sentence = data.english_sentence || (data.tokens ? data.tokens.join(" ") : "");
 
         const statusEl = document.getElementById("eh-normal-status-txt");
         if (statusEl) {
-          statusEl.textContent = `🔊 Heard: "${sentence}"`;
+          statusEl.textContent = `🔊 Deaf partner signed: "${sentence}"`;
           statusEl.style.borderColor = "#00ffcc";
           statusEl.style.color = "#00ffcc";
           setTimeout(() => {
@@ -57,7 +63,7 @@
               statusEl.style.borderColor = "rgba(0, 230, 180, 0.2)";
               statusEl.style.color = "#94a3b8";
             }
-          }, 3500);
+          }, 4000);
         }
 
         if (islEngine && sentence) {
@@ -67,6 +73,12 @@
 
       // 2. Deaf person receives voice -> 3D Avatar animates live!
       peerSync.onPeerVoiceReceived = (data) => {
+        // STRICT ROLE ENFORCEMENT: Only the deaf & mute user animates the avatar!
+        if (userChoice !== "deaf_mute") {
+          console.log("[Echo-Hands] Voice-to-avatar blocked: This tab is configured for NORMAL hearing user.");
+          return;
+        }
+
         console.log("%c[Echo-Hands] Deaf person received voice event:", "color: #00e6b4;", data);
 
         const subEl = document.getElementById("eh-deaf-sub-txt");
@@ -77,7 +89,7 @@
           subEl.style.color = "#00ffcc";
           setTimeout(() => {
             if (subEl) subEl.style.color = "#94a3b8";
-          }, 3500);
+          }, 4000);
         }
 
         if (avatarInstance && data.isl_tokens && data.isl_tokens.length > 0) {
@@ -167,6 +179,8 @@
       promptCard.remove();
       promptCard = null;
       initEngines();
+      if (peerSync) peerSync.setRole("deaf_mute");
+      try { if (window.speechSynthesis) window.speechSynthesis.cancel(); } catch(e) {}
       spawnTransparentSignOverlay();
     };
 
@@ -176,6 +190,7 @@
       promptCard.remove();
       promptCard = null;
       initEngines();
+      if (peerSync) peerSync.setRole("normal");
       spawnNormalPersonRelay();
     };
   }
@@ -358,19 +373,27 @@
       <div class="eh-normal-status" id="eh-normal-status-txt">
         Awaiting signs from deaf partner...
       </div>
-      <!-- Quick Speech Test Buttons -->
+      <!-- Quick ISL Action Words for Hearing Person -->
       <div class="eh-normal-quick-btns">
-        <button class="eh-voice-pill-btn" data-text="A">Say: "A"</button>
-        <button class="eh-voice-pill-btn" data-text="B">Say: "B"</button>
-        <button class="eh-voice-pill-btn" data-text="D">Say: "D"</button>
-        <button class="eh-voice-pill-btn" data-text="Namaste">Say: "Namaste"</button>
-        <button class="eh-voice-pill-btn" data-text="Do you need help?">Say: "Help?"</button>
-        <button class="eh-voice-pill-btn" data-text="Stop here">Say: "Stop"</button>
-        <button class="eh-voice-pill-btn" data-text="Welcome my friend">Say: "Welcome"</button>
+        <button class="eh-voice-pill-btn" data-text="A">Sign: "A"</button>
+        <button class="eh-voice-pill-btn" data-text="B">Sign: "B"</button>
+        <button class="eh-voice-pill-btn" data-text="C">Sign: "C"</button>
+        <button class="eh-voice-pill-btn" data-text="D">Sign: "D"</button>
+        <button class="eh-voice-pill-btn" data-text="Namaste">Namaste</button>
+        <button class="eh-voice-pill-btn" data-text="Help">Help</button>
+        <button class="eh-voice-pill-btn" data-text="Water">Water</button>
+        <button class="eh-voice-pill-btn" data-text="Food">Food</button>
+        <button class="eh-voice-pill-btn" data-text="Stop">Stop</button>
+        <button class="eh-voice-pill-btn" data-text="Yes">Yes</button>
+        <button class="eh-voice-pill-btn" data-text="No">No</button>
+      </div>
+      <!-- Quick A-Z Keyboard Strip for Hearing Person -->
+      <div class="eh-alphabet-tray" style="display:flex; margin:4px 0; overflow-x:auto;">
+        ${"ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(c => `<button class="eh-alpha-btn eh-normal-alpha-btn" data-sign="${c}">${c}</button>`).join("")}
       </div>
       <div class="eh-normal-input-wrap">
-        <input type="text" id="eh-normal-input" class="eh-normal-input" placeholder="Type text to sign & press Enter...">
-        <button id="eh-normal-send" class="eh-normal-send-btn">Send</button>
+        <input type="text" id="eh-normal-input" class="eh-normal-input" placeholder="Type letters/sentence to sign (e.g. HELP, WATER, A) & press Enter...">
+        <button id="eh-normal-send" class="eh-normal-send-btn">Send Sign</button>
       </div>
     `;
 
@@ -392,12 +415,21 @@
       };
     }
 
-    // Quick speech buttons
+    // Quick speech & word buttons
     const voiceBtns = normalBar.querySelectorAll(".eh-voice-pill-btn");
     voiceBtns.forEach((btn) => {
       btn.onclick = () => {
         const text = btn.getAttribute("data-text");
         sendNormalSpeech(text);
+      };
+    });
+
+    // Quick A-Z buttons for Normal Person
+    const normalAlphaBtns = normalBar.querySelectorAll(".eh-normal-alpha-btn");
+    normalAlphaBtns.forEach((btn) => {
+      btn.onclick = () => {
+        const sign = btn.getAttribute("data-sign");
+        if (sign) sendNormalSpeech(sign);
       };
     });
 

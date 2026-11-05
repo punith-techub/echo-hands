@@ -16,6 +16,7 @@ class PeerSyncManager {
     this.onConnectionStatus = null;
     this.lastReceivedSeq = 0;
     this.lastPollTimestamp = Date.now() - 1500;
+    this.role = null; // 'deaf_mute' or 'normal'
 
     // Backend URL: Default to active ultra-reliable ngrok tunnel
     this.defaultBackend = "https://python-crouch-bucked.ngrok-free.dev";
@@ -258,6 +259,11 @@ class PeerSyncManager {
     } catch (e) {}
   }
 
+  setRole(role) {
+    this.role = role;
+    console.log(`[Echo-Hands PeerSync] Role configured: ${this.role}`);
+  }
+
   handleIncomingMessage(msg, transportLayer = "unknown") {
     if (!msg || !msg.id) return;
 
@@ -274,14 +280,26 @@ class PeerSyncManager {
       this.processedEvents.add(msg.id);
     }
 
-    console.log(`%c[Echo-Hands PeerSync] Delivered via [${transportLayer}]: ${msg.type}`, "color: #00e6b4; font-weight: bold;", msg.data);
+    console.log(`%c[Echo-Hands PeerSync] Delivered via [${transportLayer}]: ${msg.type} (Client role: ${this.role})`, "color: #00e6b4; font-weight: bold;", msg.data);
 
-    if (msg.type === "PEER_SIGN_EVENT" && typeof this.onPeerSignReceived === "function") {
-      this.onPeerSignReceived(msg.data);
+    // 1. Deaf tab receives PEER_SIGN_EVENT: IGNORE COMPLETELY! A deaf tab NEVER speaks aloud!
+    if (msg.type === "PEER_SIGN_EVENT") {
+      if (this.role === "deaf_mute") {
+        return;
+      }
+      if (typeof this.onPeerSignReceived === "function") {
+        this.onPeerSignReceived(msg.data);
+      }
     }
 
-    if (msg.type === "PEER_VOICE_EVENT" && typeof this.onPeerVoiceReceived === "function") {
-      this.onPeerVoiceReceived(msg.data);
+    // 2. Normal tab receives PEER_VOICE_EVENT: IGNORE COMPLETELY! Only deaf tab animates avatar!
+    if (msg.type === "PEER_VOICE_EVENT") {
+      if (this.role === "normal") {
+        return;
+      }
+      if (typeof this.onPeerVoiceReceived === "function") {
+        this.onPeerVoiceReceived(msg.data);
+      }
     }
   }
 
