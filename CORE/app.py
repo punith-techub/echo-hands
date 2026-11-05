@@ -92,6 +92,15 @@ async def serve_index():
             return HTMLResponse(content=f.read())
     return HTMLResponse("<h1>Echo-Hands Server Active. UI initializing...</h1>")
 
+@app.get("/mobile", response_class=HTMLResponse)
+async def serve_mobile():
+    """Serve Echo-Hands mobile companion web app."""
+    mob_file = os.path.join(STATIC_DIR, "mobile.html")
+    if os.path.exists(mob_file):
+        with open(mob_file, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse("<h1>Echo-Hands Mobile Companion Initializing...</h1>")
+
 @app.get("/api/health")
 async def health_check():
     """Engine health, device status, and prototype counts."""
