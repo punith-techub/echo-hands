@@ -307,89 +307,215 @@ class ISL3DAvatar {
     // 1. Common Words
     if (s === "NAMASTE") {
       return {
-        name: "NAMASTE // PRAYER HANDS",
-        desc: "Two open human palms joined vertically at chest",
-        svg: `<svg viewBox="0 0 100 100"><path d="M42 85 C42 60 40 40 44 20 C46 15 50 15 50 20 L50 85 Z" fill="#00ffcc"/><path d="M58 85 C58 60 60 40 56 20 C54 15 50 15 50 20 L50 85 Z" fill="#00e6b4"/><circle cx="50" cy="50" r="44" fill="none" stroke="#00ffcc" stroke-width="3" stroke-dasharray="4 4"/></svg>`
+        name: "NAMASTE // [TWO-HANDED ISL]",
+        desc: "Both open human palms pressed flat together at chest level in prayer",
+        svg: `<svg viewBox="0 0 100 100"><path d="M44 85 C44 55 42 35 46 15 C48 10 50 10 50 15 L50 85 Z" fill="#00ffcc"/><path d="M56 85 C56 55 58 35 54 15 C52 10 50 10 50 15 L50 85 Z" fill="#00e6b4"/><circle cx="50" cy="50" r="44" fill="none" stroke="#00ffcc" stroke-width="3" stroke-dasharray="4 4"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED</text></svg>`
       };
     }
     if (s === "HELP") {
       return {
-        name: "HELP // SUPPORTED FIST",
-        desc: "Flat left hand carrying right thumbs-up fist",
-        svg: `<svg viewBox="0 0 100 100"><rect x="15" y="75" width="70" height="14" rx="7" fill="#00e6b4"/><rect x="35" y="40" width="30" height="30" rx="8" fill="#00ffcc"/><path d="M50 40 L50 18 Q50 10 58 10 Q65 10 65 20 L65 40 Z" fill="#00ffcc"/></svg>`
+        name: "HELP // [TWO-HANDED ISL]",
+        desc: "Flat open left palm supporting right thumbs-up fist lifting together",
+        svg: `<svg viewBox="0 0 100 100"><rect x="15" y="75" width="70" height="14" rx="7" fill="#00e6b4"/><rect x="35" y="40" width="30" height="30" rx="8" fill="#00ffcc"/><path d="M50 40 L50 18 Q50 10 58 10 Q65 10 65 20 L65 40 Z" fill="#00ffcc"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED</text></svg>`
+      };
+    }
+    if (s === "STOP") {
+      return {
+        name: "STOP // [TWO-HANDED ISL]",
+        desc: "Right hand chops down vertically onto flat horizontal left palm",
+        svg: `<svg viewBox="0 0 100 100"><rect x="15" y="70" width="70" height="14" rx="7" fill="#00e6b4"/><rect x="42" y="15" width="16" height="52" rx="6" fill="#00ffcc"/><path d="M50 68 L50 78" stroke="#041014" stroke-width="4"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED</text></svg>`
+      };
+    }
+    if (s === "WELCOME") {
+      return {
+        name: "WELCOME // [TWO-HANDED ISL]",
+        desc: "Both open palms facing up sweeping inward toward body",
+        svg: `<svg viewBox="0 0 100 100"><path d="M15 65 Q35 75 50 60" stroke="#00e6b4" stroke-width="8" fill="none" stroke-linecap="round"/><path d="M85 65 Q65 75 50 60" stroke="#00ffcc" stroke-width="8" fill="none" stroke-linecap="round"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED</text></svg>`
+      };
+    }
+    if (s === "FRIEND") {
+      return {
+        name: "FRIEND // [TWO-HANDED ISL]",
+        desc: "Curved index fingers of both hands hooked into each other",
+        svg: `<svg viewBox="0 0 100 100"><circle cx="40" cy="50" r="18" fill="none" stroke="#00e6b4" stroke-width="8"/><circle cx="60" cy="50" r="18" fill="none" stroke="#00ffcc" stroke-width="8"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED</text></svg>`
+      };
+    }
+    if (s === "THANK_YOU" || s === "THANK") {
+      return {
+        name: "THANK YOU // [CHIN SWEEP]",
+        desc: "Fingertips touch chin and open palm sweeps forward towards recipient",
+        svg: `<svg viewBox="0 0 100 100"><circle cx="50" cy="22" r="12" fill="#00e6b4"/><path d="M50 34 Q50 65 75 75" stroke="#00ffcc" stroke-width="8" fill="none" stroke-linecap="round"/><polygon points="75,70 85,78 72,82" fill="#00ffcc"/></svg>`
       };
     }
     if (s === "WATER" || s === "DRINK") {
       return {
-        name: "WATER // 3-FINGER 'W'",
+        name: "WATER // [3-FINGER 'W']",
         desc: "Index, middle, and ring fingers upright (W) tapping chin",
         svg: `<svg viewBox="0 0 100 100"><rect x="30" y="60" width="40" height="30" rx="10" fill="#00e6b4"/><rect x="30" y="20" width="10" height="45" rx="5" fill="#00ffcc"/><rect x="45" y="15" width="10" height="50" rx="5" fill="#00ffcc"/><rect x="60" y="20" width="10" height="45" rx="5" fill="#00ffcc"/></svg>`
       };
     }
     if (s === "FOOD" || s === "EAT") {
       return {
-        name: "FOOD // CLUSTER TO MOUTH",
-        desc: "Fingertips clustered together moving to mouth",
+        name: "FOOD // [CLUSTER TO MOUTH]",
+        desc: "Fingertips clustered together moving repeatedly to mouth",
         svg: `<svg viewBox="0 0 100 100"><path d="M50 20 C35 35 30 60 35 80 C45 88 55 88 65 80 C70 60 65 35 50 20 Z" fill="#00ffcc"/><circle cx="50" cy="20" r="10" fill="#00e6b4"/></svg>`
       };
     }
     if (s === "YES") {
       return {
-        name: "YES // NODDING FIST",
-        desc: "Closed fist nodding vertically up and down",
+        name: "YES // [NODDING FIST]",
+        desc: "Closed fist nodding vertically up and down at wrist",
         svg: `<svg viewBox="0 0 100 100"><rect x="30" y="30" width="40" height="40" rx="12" fill="#00ffcc"/><path d="M50 15 L50 25 M42 20 L50 15 L58 20" stroke="#00e6b4" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M50 85 L50 75 M42 80 L50 85 L58 80" stroke="#00e6b4" stroke-width="5" fill="none" stroke-linecap="round"/></svg>`
       };
     }
     if (s === "NO") {
       return {
-        name: "NO // SNAP PINCH",
-        desc: "Index and middle fingers snapping shut against thumb",
-        svg: `<svg viewBox="0 0 100 100"><rect x="25" y="55" width="40" height="35" rx="8" fill="#00e6b4"/><path d="M40 55 L70 30 Q78 35 70 45 L45 60 Z" fill="#00ffcc"/><path d="M40 70 L70 50 Q78 55 70 65 L45 75 Z" fill="#00ffcc"/></svg>`
+        name: "NO // [INDEX WAG]",
+        desc: "Upright index finger waving left and right firmly",
+        svg: `<svg viewBox="0 0 100 100"><rect x="30" y="55" width="40" height="35" rx="8" fill="#00e6b4"/><rect x="45" y="15" width="12" height="48" rx="6" fill="#00ffcc"/><path d="M25 35 L75 35" stroke="#00ffcc" stroke-width="4" stroke-linecap="round" stroke-dasharray="6 4"/></svg>`
+      };
+    }
+    if (s === "DOCTOR") {
+      return {
+        name: "DOCTOR // [TWO-HANDED ISL]",
+        desc: "Right fingertips tap inner pulse point of left wrist twice",
+        svg: `<svg viewBox="0 0 100 100"><rect x="15" y="60" width="40" height="20" rx="6" fill="#00e6b4"/><rect x="45" y="25" width="14" height="45" rx="6" fill="#00ffcc"/><circle cx="40" cy="70" r="5" fill="#ff4d4d"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED</text></svg>`
       };
     }
 
-    // 2. Letters (A-Z)
+    // 2. ISL Alphabet (A-Z)
     if (s === "A") {
       return {
-        name: "A // UPRIGHT THUMB FIST",
-        desc: "Fist closed, thumb pointing straight UP along index",
-        svg: `<svg viewBox="0 0 100 100"><rect x="30" y="45" width="44" height="42" rx="12" fill="#00e6b4"/><path d="M30 65 L18 45 Q15 30 26 28 Q34 26 36 40 L36 65 Z" fill="#00ffcc"/></svg>`
+        name: "A // [TWO-HANDED ISL]",
+        desc: "Left hand open palm; Right index touches tip of left thumb",
+        svg: `<svg viewBox="0 0 100 100"><rect x="18" y="45" width="35" height="40" rx="8" fill="#00e6b4"/><rect x="12" y="30" width="10" height="25" rx="5" fill="#00e6b4"/><rect x="48" y="20" width="12" height="48" rx="6" fill="#00ffcc"/><circle cx="20" cy="30" r="7" fill="#ffdd55"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED ISL</text></svg>`
       };
     }
     if (s === "B") {
       return {
-        name: "B // FLAT OPEN PALM",
-        desc: "4 fingers straight up together, thumb folded across palm",
-        svg: `<svg viewBox="0 0 100 100"><rect x="32" y="55" width="40" height="35" rx="8" fill="#00e6b4"/><rect x="32" y="15" width="9" height="45" rx="4.5" fill="#00ffcc"/><rect x="42" y="12" width="9" height="48" rx="4.5" fill="#00ffcc"/><rect x="52" y="14" width="9" height="46" rx="4.5" fill="#00ffcc"/><rect x="62" y="18" width="9" height="42" rx="4.5" fill="#00ffcc"/><rect x="24" y="60" width="22" height="10" rx="5" fill="#00ffcc"/></svg>`
+        name: "B // [TWO-HANDED ISL]",
+        desc: "Both hands form circles with thumb and index touching (twin B loops)",
+        svg: `<svg viewBox="0 0 100 100"><circle cx="34" cy="48" r="18" fill="none" stroke="#00e6b4" stroke-width="8"/><circle cx="66" cy="48" r="18" fill="none" stroke="#00ffcc" stroke-width="8"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED ISL</text></svg>`
       };
     }
     if (s === "C") {
       return {
-        name: "C // CURVED CUPPED HAND",
-        desc: "Fingers and thumb curved in an open C arc",
+        name: "C // [ONE-HANDED ISL]",
+        desc: "Right hand fingers and thumb curved into an open C arc profile",
         svg: `<svg viewBox="0 0 100 100"><path d="M70 25 C35 20 25 45 25 55 C25 65 35 90 70 85 C75 85 75 75 70 75 C45 75 38 60 38 55 C38 50 45 35 70 35 C75 35 75 25 70 25 Z" fill="#00ffcc"/></svg>`
       };
     }
     if (s === "D") {
       return {
-        name: "D // POINTING INDEX",
-        desc: "Index pointing straight UP, thumb and fingers in circular loop",
-        svg: `<svg viewBox="0 0 100 100"><circle cx="45" cy="65" r="22" fill="#00e6b4"/><rect x="55" y="15" width="12" height="55" rx="6" fill="#00ffcc"/></svg>`
+        name: "D // [TWO-HANDED ISL]",
+        desc: "Left index points vertically UP; Right hand forms loop against it",
+        svg: `<svg viewBox="0 0 100 100"><rect x="30" y="15" width="12" height="68" rx="6" fill="#00e6b4"/><path d="M42 25 C65 25 75 40 75 52 C75 64 65 75 42 75 Z" fill="#00ffcc"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED ISL</text></svg>`
+      };
+    }
+    if (s === "E") {
+      return {
+        name: "E // [TWO-HANDED ISL]",
+        desc: "Left hand open palm; Right index touches tip of left index finger",
+        svg: `<svg viewBox="0 0 100 100"><rect x="22" y="45" width="30" height="40" rx="8" fill="#00e6b4"/><rect x="22" y="20" width="10" height="35" rx="5" fill="#00e6b4"/><rect x="48" y="20" width="12" height="50" rx="6" fill="#00ffcc"/><circle cx="30" cy="20" r="7" fill="#ffdd55"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED ISL</text></svg>`
+      };
+    }
+    if (s === "F") {
+      return {
+        name: "F // [TWO-HANDED ISL]",
+        desc: "Left index upright; Right index and middle cross across it horizontally",
+        svg: `<svg viewBox="0 0 100 100"><rect x="35" y="15" width="12" height="70" rx="6" fill="#00e6b4"/><rect x="15" y="32" width="65" height="10" rx="5" fill="#00ffcc"/><rect x="15" y="48" width="55" height="10" rx="5" fill="#00ffcc"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED ISL</text></svg>`
+      };
+    }
+    if (s === "G") {
+      return {
+        name: "G // [TWO-HANDED ISL]",
+        desc: "Both hands in closed fists stacked vertically (right fist atop left fist)",
+        svg: `<svg viewBox="0 0 100 100"><rect x="30" y="15" width="40" height="32" rx="10" fill="#00ffcc"/><rect x="30" y="52" width="40" height="32" rx="10" fill="#00e6b4"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED ISL</text></svg>`
+      };
+    }
+    if (s === "H") {
+      return {
+        name: "H // [TWO-HANDED ISL]",
+        desc: "Left hand flat horizontal palm; Right flat palm strokes across it",
+        svg: `<svg viewBox="0 0 100 100"><rect x="15" y="50" width="60" height="20" rx="8" fill="#00e6b4"/><rect x="35" y="20" width="22" height="50" rx="8" fill="#00ffcc"/><path d="M25 35 L75 35" stroke="#ffdd55" stroke-width="4" stroke-linecap="round"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED ISL</text></svg>`
+      };
+    }
+    if (s === "I") {
+      return {
+        name: "I // [TWO-HANDED ISL]",
+        desc: "Left hand open palm; Right index touches tip of left middle finger",
+        svg: `<svg viewBox="0 0 100 100"><rect x="22" y="45" width="30" height="40" rx="8" fill="#00e6b4"/><rect x="32" y="15" width="10" height="40" rx="5" fill="#00e6b4"/><rect x="52" y="15" width="12" height="50" rx="6" fill="#00ffcc"/><circle cx="37" cy="18" r="7" fill="#ffdd55"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED ISL</text></svg>`
+      };
+    }
+    if (s === "L") {
+      return {
+        name: "L // [ONE-HANDED ISL]",
+        desc: "Right thumb and index extended at 90-degree right angle forming L",
+        svg: `<svg viewBox="0 0 100 100"><rect x="30" y="15" width="14" height="60" rx="7" fill="#00ffcc"/><rect x="30" y="60" width="45" height="14" rx="7" fill="#00ffcc"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">ONE-HANDED</text></svg>`
+      };
+    }
+    if (s === "M") {
+      return {
+        name: "M // [TWO-HANDED ISL]",
+        desc: "Left hand flat palm up; Right hand 3 fingers resting across left palm",
+        svg: `<svg viewBox="0 0 100 100"><rect x="15" y="60" width="70" height="18" rx="8" fill="#00e6b4"/><rect x="30" y="25" width="10" height="45" rx="5" fill="#00ffcc"/><rect x="45" y="25" width="10" height="45" rx="5" fill="#00ffcc"/><rect x="60" y="25" width="10" height="45" rx="5" fill="#00ffcc"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED ISL</text></svg>`
+      };
+    }
+    if (s === "N") {
+      return {
+        name: "N // [TWO-HANDED ISL]",
+        desc: "Left hand flat palm up; Right hand 2 fingers resting across left palm",
+        svg: `<svg viewBox="0 0 100 100"><rect x="15" y="60" width="70" height="18" rx="8" fill="#00e6b4"/><rect x="35" y="25" width="12" height="45" rx="6" fill="#00ffcc"/><rect x="53" y="25" width="12" height="45" rx="6" fill="#00ffcc"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED ISL</text></svg>`
+      };
+    }
+    if (s === "P") {
+      return {
+        name: "P // [TWO-HANDED ISL]",
+        desc: "Left index points vertically UP; Right thumb and index loop at top of it",
+        svg: `<svg viewBox="0 0 100 100"><rect x="30" y="15" width="12" height="70" rx="6" fill="#00e6b4"/><circle cx="58" cy="32" r="18" fill="none" stroke="#00ffcc" stroke-width="8"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED ISL</text></svg>`
+      };
+    }
+    if (s === "S") {
+      return {
+        name: "S // [TWO-HANDED ISL]",
+        desc: "Little fingers (pinkies) of both hands hooked into each other",
+        svg: `<svg viewBox="0 0 100 100"><circle cx="40" cy="50" r="14" fill="none" stroke="#00e6b4" stroke-width="8"/><circle cx="60" cy="50" r="14" fill="none" stroke="#00ffcc" stroke-width="8"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED ISL</text></svg>`
+      };
+    }
+    if (s === "T") {
+      return {
+        name: "T // [TWO-HANDED ISL]",
+        desc: "Left index upright; Right index touches side horizontally at midpoint",
+        svg: `<svg viewBox="0 0 100 100"><rect x="35" y="15" width="12" height="70" rx="6" fill="#00e6b4"/><rect x="47" y="45" width="40" height="12" rx="6" fill="#00ffcc"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED ISL</text></svg>`
       };
     }
     if (s === "V") {
       return {
-        name: "V // PEACE SIGN",
-        desc: "Index and middle fingers spread in high V",
+        name: "V // [PEACE V SIGN]",
+        desc: "Right index and middle fingers spread in high V",
         svg: `<svg viewBox="0 0 100 100"><rect x="35" y="55" width="34" height="35" rx="10" fill="#00e6b4"/><path d="M42 58 L30 18 Q35 12 42 16 L48 58 Z" fill="#00ffcc"/><path d="M58 58 L70 18 Q65 12 58 16 L52 58 Z" fill="#00ffcc"/></svg>`
+      };
+    }
+    if (s === "W") {
+      return {
+        name: "W // [3-FINGER TRIDENT]",
+        desc: "Right index, middle, and ring spread in high W",
+        svg: `<svg viewBox="0 0 100 100"><rect x="30" y="55" width="40" height="35" rx="10" fill="#00e6b4"/><rect x="28" y="18" width="10" height="45" rx="5" fill="#00ffcc"/><rect x="45" y="15" width="10" height="48" rx="5" fill="#00ffcc"/><rect x="62" y="18" width="10" height="45" rx="5" fill="#00ffcc"/></svg>`
+      };
+    }
+    if (s === "X") {
+      return {
+        name: "X // [TWO-HANDED ISL]",
+        desc: "Both index fingers extended and crossed horizontally forming an X",
+        svg: `<svg viewBox="0 0 100 100"><line x1="20" y1="25" x2="80" y2="75" stroke="#00e6b4" stroke-width="12" stroke-linecap="round"/><line x1="20" y1="75" x2="80" y2="25" stroke="#00ffcc" stroke-width="12" stroke-linecap="round"/><text x="50" y="96" font-size="8" fill="#00ffcc" text-anchor="middle" font-weight="bold">TWO-HANDED ISL</text></svg>`
       };
     }
 
     // Generic letter fallback
     return {
-      name: `${s} // ISL FINGERSPELLING`,
+      name: `${s} // [ISL FINGERSPELLING]`,
       desc: `Authentic Indian Sign Language letter ${s}`,
-      svg: `<svg viewBox="0 0 100 100"><rect x="25" y="45" width="50" height="42" rx="12" fill="#00e6b4"/><rect x="42" y="15" width="16" height="35" rx="8" fill="#00ffcc"/><text x="50" y="72" font-size="28" font-weight="bold" fill="#041014" text-anchor="middle">${s}</text></svg>`
+      svg: `<svg viewBox="0 0 100 100"><rect x="25" y="30" width="50" height="50" rx="12" fill="#00e6b4"/><circle cx="50" cy="55" r="20" fill="#041014"/><text x="50" y="65" font-size="28" font-weight="bold" fill="#00ffcc" text-anchor="middle">${s}</text></svg>`
     };
   }
 
@@ -409,33 +535,20 @@ class ISL3DAvatar {
   getSignPose(signToken) {
     const s = signToken.toUpperCase();
 
-    // 1. Common Words
+    // =========================================================================
+    // 1. Core Vocabulary Words (Authentic ISL Handedness)
+    // =========================================================================
     if (s === "NAMASTE") {
       return {
         head: { x: 0.18, y: 0, z: 0 },
         chest: { x: 0.05, y: 0, z: 0 },
-        leftShoulder: { x: -0.85, y: 0.35, z: 0.75 },
+        leftShoulder: { x: -0.85, y: 0.35, z: 0.70 },
         leftElbow: { x: -1.75, y: -0.3, z: 0.2 },
         leftWrist: { x: 0.2, y: 1.1, z: 0 },
-        rightShoulder: { x: -0.85, y: -0.35, z: -0.75 },
+        rightShoulder: { x: -0.85, y: -0.35, z: -0.70 },
         rightElbow: { x: -1.75, y: 0.3, z: -0.2 },
         rightWrist: { x: 0.2, y: -1.1, z: 0 },
         leftFingers: [0, 0, 0, 0, 0],
-        rightFingers: [0, 0, 0, 0, 0]
-      };
-    }
-
-    if (s === "HELLO") {
-      return {
-        head: { x: -0.05, y: 0.1, z: 0 },
-        chest: { x: 0, y: 0, z: 0 },
-        leftShoulder: { x: 0.1, y: 0, z: -0.2 },
-        leftElbow: { x: 0.3, y: 0, z: 0.4 },
-        leftWrist: { x: 0, y: 0, z: 0 },
-        rightShoulder: { x: -1.3, y: 0.4, z: -0.6 },
-        rightElbow: { x: -1.5, y: 0.8, z: 0.3 },
-        rightWrist: { x: 0.1, y: 0.6, z: 0.4 },
-        leftFingers: [0.3, 0.3, 0.3, 0.3, 0.3],
         rightFingers: [0, 0, 0, 0, 0]
       };
     }
@@ -444,14 +557,74 @@ class ISL3DAvatar {
       return {
         head: { x: 0.1, y: 0, z: 0 },
         chest: { x: 0.05, y: 0, z: 0 },
-        leftShoulder: { x: -0.7, y: 0.2, z: 0.4 },
-        leftElbow: { x: -1.3, y: 0, z: 0.4 },
-        leftWrist: { x: 0.2, y: 0.2, z: 0 }, // Flat open palm facing up
-        rightShoulder: { x: -0.8, y: -0.1, z: -0.3 },
-        rightElbow: { x: -1.5, y: 0.2, z: -0.3 },
-        rightWrist: { x: 0.1, y: 0, z: 0 }, // Thumbs up fist resting on left palm
+        leftShoulder: { x: -0.70, y: 0.20, z: 0.40 },
+        leftElbow: { x: -1.40, y: 0, z: 0.20 },
+        leftWrist: { x: 0.20, y: 0.30, z: 0 }, // Open flat palm facing up
+        rightShoulder: { x: -0.80, y: -0.15, z: -0.30 },
+        rightElbow: { x: -1.55, y: 0.10, z: -0.20 },
+        rightWrist: { x: 0.15, y: -0.10, z: 0 }, // Thumbs-up fist resting atop left palm
         leftFingers: [0, 0, 0, 0, 0],
-        rightFingers: [0, 1, 1, 1, 1] // Thumb straight up
+        rightFingers: [0, 1, 1, 1, 1] // Thumb upright
+      };
+    }
+
+    if (s === "STOP") {
+      return {
+        head: { x: 0.08, y: 0, z: 0 },
+        chest: { x: 0.05, y: 0, z: 0 },
+        leftShoulder: { x: -0.70, y: 0.20, z: 0.35 },
+        leftElbow: { x: -1.35, y: 0, z: 0.15 },
+        leftWrist: { x: 0.25, y: 0.20, z: 0 }, // Horizontal base palm
+        rightShoulder: { x: -0.85, y: -0.20, z: -0.40 },
+        rightElbow: { x: -1.65, y: 0.15, z: -0.15 },
+        rightWrist: { x: 0.40, y: -0.50, z: 0 }, // Vertical chopping palm
+        leftFingers: [0, 0, 0, 0, 0],
+        rightFingers: [0, 0, 0, 0, 0]
+      };
+    }
+
+    if (s === "WELCOME") {
+      return {
+        head: { x: 0.10, y: 0, z: 0 },
+        chest: { x: 0.05, y: 0, z: 0 },
+        leftShoulder: { x: -0.65, y: 0.35, z: 0.50 },
+        leftElbow: { x: -1.30, y: -0.20, z: 0.30 },
+        leftWrist: { x: 0.20, y: 0.50, z: 0 },
+        rightShoulder: { x: -0.65, y: -0.35, z: -0.50 },
+        rightElbow: { x: -1.30, y: 0.20, z: -0.30 },
+        rightWrist: { x: 0.20, y: -0.50, z: 0 },
+        leftFingers: [0, 0, 0, 0, 0],
+        rightFingers: [0, 0, 0, 0, 0]
+      };
+    }
+
+    if (s === "FRIEND") {
+      return {
+        head: { x: 0.12, y: 0, z: 0 },
+        chest: { x: 0.05, y: 0, z: 0 },
+        leftShoulder: { x: -0.75, y: 0.25, z: 0.40 },
+        leftElbow: { x: -1.50, y: 0, z: 0.20 },
+        leftWrist: { x: 0.20, y: 0.40, z: 0 },
+        rightShoulder: { x: -0.75, y: -0.25, z: -0.40 },
+        rightElbow: { x: -1.50, y: 0, z: -0.20 },
+        rightWrist: { x: 0.20, y: -0.40, z: 0 },
+        leftFingers: [1, 0.45, 1, 1, 1], // Hooked index
+        rightFingers: [1, 0.45, 1, 1, 1]
+      };
+    }
+
+    if (s === "THANK_YOU" || s === "THANK") {
+      return {
+        head: { x: 0.10, y: 0, z: 0 },
+        chest: { x: 0.05, y: 0, z: 0 },
+        leftShoulder: { x: 0.1, y: 0, z: -0.2 },
+        leftElbow: { x: 0.3, y: 0, z: 0.4 },
+        leftWrist: { x: 0, y: 0, z: 0 },
+        rightShoulder: { x: -1.05, y: 0.20, z: -0.30 },
+        rightElbow: { x: -1.80, y: 0.30, z: 0 },
+        rightWrist: { x: 0.40, y: 0.20, z: 0.10 },
+        leftFingers: [0.5, 0.5, 0.5, 0.5, 0.5],
+        rightFingers: [0, 0, 0, 0, 0]
       };
     }
 
@@ -511,43 +684,174 @@ class ISL3DAvatar {
         rightElbow: { x: -1.5, y: 0.3, z: 0 },
         rightWrist: { x: 0.2, y: 0.4, z: 0 },
         leftFingers: [0.5, 0.5, 0.5, 0.5, 0.5],
-        rightFingers: [0.9, 0.9, 0.9, 0, 0]
+        rightFingers: [1, 0, 1, 1, 1] // Index upright
       };
     }
 
-    // 2. Letters & Fingerspelling (A-Z)
-    if (s.length === 1 && s >= "A" && s <= "Z") {
-      const code = s.charCodeAt(0) - 65;
-      const fingerPatterns = [
-        [0, 1, 1, 1, 1], // A (Thumb upright, other 4 curled)
-        [1, 0, 0, 0, 0], // B (Thumb folded across palm, 4 fingers straight up)
-        [0.45, 0.45, 0.45, 0.45, 0.45], // C (Curved arc)
-        [1, 0, 1, 1, 1], // D (Index straight up, others curled)
-        [1, 0.9, 0.9, 0.9, 0.9], // E
-        [0.8, 0.8, 0, 0, 0], // F (OK sign with 3 up)
-        [0, 0, 1, 1, 1], // G
-        [0, 0, 0, 1, 1], // H
-        [1, 1, 1, 1, 0], // I (Pinky up)
-        [1, 1, 1, 1, 0], // J
-        [0, 0, 0, 1, 1], // K
-        [0, 0, 1, 1, 1], // L (Thumb + Index L)
-        [0.9, 0.9, 0.9, 1, 1], // M
-        [0.9, 0.9, 1, 1, 1], // N
-        [0.55, 0.55, 0.55, 0.55, 0.55], // O
-        [0, 0, 0.7, 1, 1], // P
-        [0, 0, 1, 1, 1], // Q
-        [1, 0, 0, 1, 1], // R (Crossed)
-        [1, 1, 1, 1, 1], // S (Full fist)
-        [0.5, 1, 1, 1, 1], // T
-        [1, 0, 0, 1, 1], // U (Two fingers together up)
-        [1, 0, 0, 1, 1], // V (Two fingers spread up peace)
-        [1, 0, 0, 0, 1], // W (Three fingers spread up)
-        [1, 0.5, 1, 1, 1], // X
-        [0, 1, 1, 1, 0], // Y (Thumb + Pinky)
-        [1, 0, 1, 1, 1]  // Z
-      ];
-      const rFing = fingerPatterns[code] || [0, 0, 0, 0, 0];
+    if (s === "DOCTOR") {
+      return {
+        head: { x: 0.12, y: 0, z: 0 },
+        chest: { x: 0.05, y: 0, z: 0 },
+        leftShoulder: { x: -0.70, y: 0.25, z: 0.35 },
+        leftElbow: { x: -1.40, y: -0.10, z: 0.20 },
+        leftWrist: { x: 0.15, y: 0.30, z: 0 },
+        rightShoulder: { x: -0.80, y: -0.20, z: -0.35 },
+        rightElbow: { x: -1.60, y: 0.10, z: -0.15 },
+        rightWrist: { x: 0.30, y: -0.20, z: 0 },
+        leftFingers: [0, 0, 0, 0, 0],
+        rightFingers: [1, 0, 0, 1, 1] // 2 fingers tapping pulse point
+      };
+    }
 
+    // =========================================================================
+    // 2. ISL Manual Alphabet (A-Z) - TWO-HANDED & ONE-HANDED ACCURACY
+    // =========================================================================
+    if (s === "A") {
+      // TWO-HANDED: Left open palm facing right; Right index touches left thumb tip
+      return {
+        head: { x: 0.05, y: 0, z: 0 },
+        chest: { x: 0, y: 0, z: 0 },
+        leftShoulder: { x: -0.75, y: 0.30, z: 0.50 },
+        leftElbow: { x: -1.50, y: -0.10, z: 0.20 },
+        leftWrist: { x: 0.20, y: 0.70, z: 0.0 },
+        rightShoulder: { x: -0.80, y: -0.30, z: -0.55 },
+        rightElbow: { x: -1.60, y: 0.15, z: -0.15 },
+        rightWrist: { x: 0.25, y: -0.75, z: 0.0 },
+        leftFingers: [0, 0, 0, 0, 0],      // Left hand open palm
+        rightFingers: [1, 0, 1, 1, 1]     // Right index extended to thumb
+      };
+    }
+
+    if (s === "B") {
+      // TWO-HANDED: Both hands form loops touching side-by-side (twin B loops)
+      return {
+        head: { x: 0.05, y: 0, z: 0 },
+        chest: { x: 0, y: 0, z: 0 },
+        leftShoulder: { x: -0.75, y: 0.25, z: 0.45 },
+        leftElbow: { x: -1.50, y: 0, z: 0.15 },
+        leftWrist: { x: 0.15, y: 0.50, z: 0.0 },
+        rightShoulder: { x: -0.75, y: -0.25, z: -0.45 },
+        rightElbow: { x: -1.50, y: 0, z: -0.15 },
+        rightWrist: { x: 0.15, y: -0.50, z: 0.0 },
+        leftFingers: [0.7, 0.7, 0.1, 0.1, 0.1],
+        rightFingers: [0.7, 0.7, 0.1, 0.1, 0.1]
+      };
+    }
+
+    if (s === "C") {
+      // ONE-HANDED: Curved C arc with dominant hand
+      return {
+        head: { x: 0, y: 0, z: 0 },
+        chest: { x: 0, y: 0, z: 0 },
+        leftShoulder: { x: 0.1, y: 0, z: -0.2 },
+        leftElbow: { x: 0.3, y: 0, z: 0.4 },
+        leftWrist: { x: 0, y: 0, z: 0 },
+        rightShoulder: { x: -0.90, y: 0.10, z: -0.30 },
+        rightElbow: { x: -1.65, y: 0.15, z: 0 },
+        rightWrist: { x: 0.20, y: 0.25, z: 0.15 },
+        leftFingers: [0.5, 0.5, 0.5, 0.5, 0.5],
+        rightFingers: [0.45, 0.45, 0.45, 0.45, 0.45]
+      };
+    }
+
+    if (s === "D") {
+      // TWO-HANDED: Left index upright (stem); Right hand curves loop against it
+      return {
+        head: { x: 0.05, y: 0, z: 0 },
+        chest: { x: 0, y: 0, z: 0 },
+        leftShoulder: { x: -0.75, y: 0.25, z: 0.45 },
+        leftElbow: { x: -1.50, y: 0, z: 0.15 },
+        leftWrist: { x: 0.20, y: 0.60, z: 0.0 },
+        rightShoulder: { x: -0.80, y: -0.25, z: -0.50 },
+        rightElbow: { x: -1.55, y: 0.10, z: -0.15 },
+        rightWrist: { x: 0.20, y: -0.60, z: 0.0 },
+        leftFingers: [1, 0, 1, 1, 1],      // Left index straight up
+        rightFingers: [0.55, 0.55, 1, 1, 1] // Right curved D arc
+      };
+    }
+
+    if (s === "E") {
+      // TWO-HANDED: Left open palm; Right index touches tip of left index
+      return {
+        head: { x: 0.05, y: 0, z: 0 },
+        chest: { x: 0, y: 0, z: 0 },
+        leftShoulder: { x: -0.75, y: 0.25, z: 0.45 },
+        leftElbow: { x: -1.50, y: 0, z: 0.15 },
+        leftWrist: { x: 0.20, y: 0.65, z: 0.0 },
+        rightShoulder: { x: -0.80, y: -0.25, z: -0.50 },
+        rightElbow: { x: -1.55, y: 0.10, z: -0.15 },
+        rightWrist: { x: 0.20, y: -0.65, z: 0.0 },
+        leftFingers: [0, 0, 0, 0, 0],
+        rightFingers: [1, 0, 1, 1, 1] // Index touches left index
+      };
+    }
+
+    if (s === "F") {
+      // TWO-HANDED: Left index upright; Right index & middle crossed horizontally
+      return {
+        head: { x: 0.05, y: 0, z: 0 },
+        chest: { x: 0, y: 0, z: 0 },
+        leftShoulder: { x: -0.75, y: 0.25, z: 0.40 },
+        leftElbow: { x: -1.50, y: 0, z: 0.15 },
+        leftWrist: { x: 0.20, y: 0.50, z: 0.0 },
+        rightShoulder: { x: -0.80, y: -0.25, z: -0.45 },
+        rightElbow: { x: -1.55, y: 0.10, z: -0.15 },
+        rightWrist: { x: 0.25, y: -0.50, z: 0.0 },
+        leftFingers: [1, 0, 1, 1, 1],
+        rightFingers: [1, 0, 0, 1, 1] // Crossed 2 fingers
+      };
+    }
+
+    if (s === "G") {
+      // TWO-HANDED: Two closed fists stacked vertically
+      return {
+        head: { x: 0.05, y: 0, z: 0 },
+        chest: { x: 0, y: 0, z: 0 },
+        leftShoulder: { x: -0.65, y: 0.20, z: 0.35 },
+        leftElbow: { x: -1.35, y: 0, z: 0.15 },
+        leftWrist: { x: 0.20, y: 0.20, z: 0 },  // Lower fist
+        rightShoulder: { x: -0.85, y: -0.20, z: -0.35 },
+        rightElbow: { x: -1.65, y: 0, z: -0.15 },
+        rightWrist: { x: 0.20, y: -0.20, z: 0 }, // Upper fist stacked atop
+        leftFingers: [1, 1, 1, 1, 1],
+        rightFingers: [1, 1, 1, 1, 1]
+      };
+    }
+
+    if (s === "H") {
+      // TWO-HANDED: Left horizontal flat palm; Right flat palm strokes across it
+      return {
+        head: { x: 0.05, y: 0, z: 0 },
+        chest: { x: 0, y: 0, z: 0 },
+        leftShoulder: { x: -0.70, y: 0.20, z: 0.40 },
+        leftElbow: { x: -1.40, y: 0, z: 0.15 },
+        leftWrist: { x: 0.20, y: 0.30, z: 0 },
+        rightShoulder: { x: -0.80, y: -0.20, z: -0.45 },
+        rightElbow: { x: -1.55, y: 0.10, z: -0.15 },
+        rightWrist: { x: 0.25, y: -0.30, z: 0 },
+        leftFingers: [0, 0, 0, 0, 0],
+        rightFingers: [0, 0, 0, 0, 0]
+      };
+    }
+
+    if (s === "I") {
+      // TWO-HANDED: Left open palm; Right index touches tip of left middle finger
+      return {
+        head: { x: 0.05, y: 0, z: 0 },
+        chest: { x: 0, y: 0, z: 0 },
+        leftShoulder: { x: -0.75, y: 0.25, z: 0.45 },
+        leftElbow: { x: -1.50, y: 0, z: 0.15 },
+        leftWrist: { x: 0.20, y: 0.60, z: 0.0 },
+        rightShoulder: { x: -0.80, y: -0.25, z: -0.50 },
+        rightElbow: { x: -1.55, y: 0.10, z: -0.15 },
+        rightWrist: { x: 0.20, y: -0.60, z: 0.0 },
+        leftFingers: [0, 0, 0, 0, 0],
+        rightFingers: [1, 0, 1, 1, 1]
+      };
+    }
+
+    if (s === "L") {
+      // ONE-HANDED: Thumb & index extended at 90-degree right angle
       return {
         head: { x: 0, y: 0, z: 0 },
         chest: { x: 0, y: 0, z: 0 },
@@ -558,9 +862,152 @@ class ISL3DAvatar {
         rightElbow: { x: -1.7, y: 0.1, z: 0 },
         rightWrist: { x: 0.25, y: 0.1, z: 0.2 },
         leftFingers: [0.5, 0.5, 0.5, 0.5, 0.5],
-        rightFingers: rFing
+        rightFingers: [0, 0, 1, 1, 1] // Thumb + index L
       };
     }
+
+    if (s === "M") {
+      // TWO-HANDED: Left flat palm up; Right hand 3 fingers resting across it
+      return {
+        head: { x: 0.05, y: 0, z: 0 },
+        chest: { x: 0, y: 0, z: 0 },
+        leftShoulder: { x: -0.70, y: 0.20, z: 0.40 },
+        leftElbow: { x: -1.40, y: 0, z: 0.15 },
+        leftWrist: { x: 0.20, y: 0.30, z: 0 },
+        rightShoulder: { x: -0.80, y: -0.20, z: -0.45 },
+        rightElbow: { x: -1.55, y: 0.10, z: -0.15 },
+        rightWrist: { x: 0.25, y: -0.30, z: 0 },
+        leftFingers: [0, 0, 0, 0, 0],
+        rightFingers: [1, 0, 0, 0, 1] // 3 fingers resting across
+      };
+    }
+
+    if (s === "N") {
+      // TWO-HANDED: Left flat palm up; Right hand 2 fingers resting across it
+      return {
+        head: { x: 0.05, y: 0, z: 0 },
+        chest: { x: 0, y: 0, z: 0 },
+        leftShoulder: { x: -0.70, y: 0.20, z: 0.40 },
+        leftElbow: { x: -1.40, y: 0, z: 0.15 },
+        leftWrist: { x: 0.20, y: 0.30, z: 0 },
+        rightShoulder: { x: -0.80, y: -0.20, z: -0.45 },
+        rightElbow: { x: -1.55, y: 0.10, z: -0.15 },
+        rightWrist: { x: 0.25, y: -0.30, z: 0 },
+        leftFingers: [0, 0, 0, 0, 0],
+        rightFingers: [1, 0, 0, 1, 1] // 2 fingers resting across
+      };
+    }
+
+    if (s === "P") {
+      // TWO-HANDED: Left index upright (stem); Right loop at top of it
+      return {
+        head: { x: 0.05, y: 0, z: 0 },
+        chest: { x: 0, y: 0, z: 0 },
+        leftShoulder: { x: -0.75, y: 0.25, z: 0.45 },
+        leftElbow: { x: -1.50, y: 0, z: 0.15 },
+        leftWrist: { x: 0.20, y: 0.60, z: 0.0 },
+        rightShoulder: { x: -0.85, y: -0.25, z: -0.50 },
+        rightElbow: { x: -1.65, y: 0.10, z: -0.15 },
+        rightWrist: { x: 0.20, y: -0.60, z: 0.0 },
+        leftFingers: [1, 0, 1, 1, 1],      // Upright stem
+        rightFingers: [0.6, 0.6, 1, 1, 1] // Loop at top
+      };
+    }
+
+    if (s === "S") {
+      // TWO-HANDED: Both little fingers (pinkies) hooked together
+      return {
+        head: { x: 0.05, y: 0, z: 0 },
+        chest: { x: 0, y: 0, z: 0 },
+        leftShoulder: { x: -0.75, y: 0.25, z: 0.40 },
+        leftElbow: { x: -1.50, y: 0, z: 0.15 },
+        leftWrist: { x: 0.20, y: 0.45, z: 0 },
+        rightShoulder: { x: -0.75, y: -0.25, z: -0.40 },
+        rightElbow: { x: -1.50, y: 0, z: -0.15 },
+        rightWrist: { x: 0.20, y: -0.45, z: 0 },
+        leftFingers: [1, 1, 1, 1, 0],
+        rightFingers: [1, 1, 1, 1, 0]
+      };
+    }
+
+    if (s === "T") {
+      // TWO-HANDED: Left index upright; Right index touches side horizontally at midpoint
+      return {
+        head: { x: 0.05, y: 0, z: 0 },
+        chest: { x: 0, y: 0, z: 0 },
+        leftShoulder: { x: -0.75, y: 0.25, z: 0.45 },
+        leftElbow: { x: -1.50, y: 0, z: 0.15 },
+        leftWrist: { x: 0.20, y: 0.50, z: 0.0 },
+        rightShoulder: { x: -0.80, y: -0.25, z: -0.45 },
+        rightElbow: { x: -1.55, y: 0.10, z: -0.15 },
+        rightWrist: { x: 0.20, y: -0.50, z: 0.0 },
+        leftFingers: [1, 0, 1, 1, 1],
+        rightFingers: [1, 0, 1, 1, 1]
+      };
+    }
+
+    if (s === "V") {
+      // ONE-HANDED: Peace V sign spread
+      return {
+        head: { x: 0, y: 0, z: 0 },
+        chest: { x: 0, y: 0, z: 0 },
+        leftShoulder: { x: 0.1, y: 0, z: -0.2 },
+        leftElbow: { x: 0.3, y: 0, z: 0.4 },
+        leftWrist: { x: 0, y: 0, z: 0 },
+        rightShoulder: { x: -0.95, y: 0.1, z: -0.35 },
+        rightElbow: { x: -1.7, y: 0.1, z: 0 },
+        rightWrist: { x: 0.25, y: 0.1, z: 0.2 },
+        leftFingers: [0.5, 0.5, 0.5, 0.5, 0.5],
+        rightFingers: [1, 0, 0, 1, 1] // Index + middle spread
+      };
+    }
+
+    if (s === "W") {
+      // ONE-HANDED: Trident W sign
+      return {
+        head: { x: 0, y: 0, z: 0 },
+        chest: { x: 0, y: 0, z: 0 },
+        leftShoulder: { x: 0.1, y: 0, z: -0.2 },
+        leftElbow: { x: 0.3, y: 0, z: 0.4 },
+        leftWrist: { x: 0, y: 0, z: 0 },
+        rightShoulder: { x: -0.95, y: 0.1, z: -0.35 },
+        rightElbow: { x: -1.7, y: 0.1, z: 0 },
+        rightWrist: { x: 0.25, y: 0.1, z: 0.2 },
+        leftFingers: [0.5, 0.5, 0.5, 0.5, 0.5],
+        rightFingers: [1, 0, 0, 0, 1] // Index + middle + ring spread
+      };
+    }
+
+    if (s === "X") {
+      // TWO-HANDED: Both index fingers crossed horizontally like an X
+      return {
+        head: { x: 0.05, y: 0, z: 0 },
+        chest: { x: 0, y: 0, z: 0 },
+        leftShoulder: { x: -0.75, y: 0.25, z: 0.40 },
+        leftElbow: { x: -1.50, y: 0, z: 0.15 },
+        leftWrist: { x: 0.20, y: 0.45, z: 0 },
+        rightShoulder: { x: -0.75, y: -0.25, z: -0.40 },
+        rightElbow: { x: -1.50, y: 0, z: -0.15 },
+        rightWrist: { x: 0.20, y: -0.45, z: 0 },
+        leftFingers: [1, 0, 1, 1, 1],
+        rightFingers: [1, 0, 1, 1, 1]
+      };
+    }
+
+    // Default letter fallback (Two-handed ISL interactive posture)
+    return {
+      head: { x: 0, y: 0, z: 0 },
+      chest: { x: 0, y: 0, z: 0 },
+      leftShoulder: { x: -0.65, y: 0.20, z: 0.35 },
+      leftElbow: { x: -1.35, y: 0, z: 0.15 },
+      leftWrist: { x: 0.15, y: 0.30, z: 0 },
+      rightShoulder: { x: -0.90, y: -0.10, z: -0.30 },
+      rightElbow: { x: -1.65, y: 0.10, z: -0.10 },
+      rightWrist: { x: 0.25, y: -0.20, z: 0 },
+      leftFingers: [0, 0, 0, 0, 0],
+      rightFingers: [1, 0, 1, 1, 1]
+    };
+  }
 
     // Default neutral ready pose
     return JSON.parse(JSON.stringify(this.defaultPose));

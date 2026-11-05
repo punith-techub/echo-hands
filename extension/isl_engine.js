@@ -221,35 +221,50 @@ class ISLEngine {
 
     const text = speechText.trim().toLowerCase();
 
-    // Quick phrase matches
-    if (text.includes("how are you")) return ["HOW", "YOU"];
+    // 1. Core Phrase Pattern Matching (Standard ISL Syntax)
+    if (text.includes("how are you") || text.includes("how r u")) return ["HOW", "YOU"];
     if (text.includes("what is your name")) return ["YOU", "NAME", "WHAT"];
-    if (text.includes("help me") || text.includes("need help")) return ["PLEASE", "HELP", "ME"];
-    if (text.includes("thank you")) return ["THANK_YOU"];
+    if (text.includes("good morning")) return ["GOOD", "MORNING"];
+    if (text.includes("good afternoon")) return ["GOOD", "AFTERNOON"];
+    if (text.includes("good night")) return ["GOOD", "NIGHT"];
+    if (text.includes("thank you") || text.includes("thanks") || text.includes("धन्यवाद")) return ["THANK_YOU"];
+    if (text.includes("welcome") || text.includes("स्वागत")) return ["WELCOME"];
+    if (text.includes("friend") || text.includes("दोस्त")) return ["FRIEND"];
+    if (text.includes("stop") || text.includes("रुको")) return ["STOP"];
+    if (text.includes("help me") || text.includes("need help") || text.includes("मदद")) return ["PLEASE", "HELP", "ME"];
     if (text.includes("namaste") || text.includes("नमस्ते")) return ["NAMASTE"];
-    if (text.includes("want food") || text.includes("खाना")) return ["I", "FOOD", "WANT"];
-    if (text.includes("water") || text.includes("पानी")) return ["I", "WATER", "WANT"];
+    if (text.includes("want food") || text.includes("eat food") || text.includes("खाना")) return ["I", "FOOD", "WANT"];
+    if (text.includes("water") || text.includes("drink water") || text.includes("पानी")) return ["I", "WATER", "WANT"];
     if (text.includes("doctor") || text.includes("डॉक्टर")) return ["I", "DOCTOR", "NEED"];
     if (text.includes("medicine") || text.includes("दवा")) return ["I", "MEDICINE", "NEED"];
-    if (text.includes("yes") || text.includes("हाँ")) return ["YES"];
-    if (text.includes("no") || text.includes("नहीं")) return ["NO"];
+    if (text.includes("what is time") || text.includes("what time")) return ["TIME", "WHAT"];
+    if (text.includes("i love you")) return ["I", "YOU", "LOVE"];
+    if (text.includes("yes") || text.includes("yeah") || text.includes("yep") || text.includes("हाँ") || text.includes("ok") || text.includes("okay")) return ["YES"];
+    if (text.includes("no") || text.includes("nope") || text.includes("नहीं")) return ["NO"];
 
-    const words = text.replace(/[^\w\s]/g, "").split(/\s+/);
+    const words = text.replace(/[^\w\s]/g, "").split(/\s+/).filter(Boolean);
     const tokens = [];
 
     const KNOWN_WORDS = {
-      hello: "HELLO", hi: "HELLO", namaste: "NAMASTE", help: "HELP",
+      hello: "HELLO", hi: "HELLO", hey: "HELLO", namaste: "NAMASTE", help: "HELP",
+      stop: "STOP", welcome: "WELCOME", friend: "FRIEND", thank: "THANK_YOU", thanks: "THANK_YOU",
       food: "FOOD", eat: "FOOD", water: "WATER", drink: "WATER",
       doctor: "DOCTOR", medicine: "MEDICINE", hospital: "HOSPITAL",
       home: "HOME", good: "GOOD", bad: "BAD", yes: "YES", no: "NO",
-      please: "PLEASE", sorry: "SORRY", i: "I", me: "I", you: "YOU"
+      please: "PLEASE", sorry: "SORRY", i: "I", me: "I", you: "YOU",
+      time: "TIME", day: "DAY", night: "NIGHT", morning: "MORNING",
+      father: "FATHER", mother: "MOTHER", brother: "BROTHER", sister: "SISTER",
+      family: "FAMILY", police: "POLICE", want: "WANT", need: "NEED",
+      where: "WHERE", what: "WHAT", how: "HOW", why: "WHY", when: "WHEN"
     };
 
     for (const w of words) {
       if (KNOWN_WORDS[w]) {
         tokens.push(KNOWN_WORDS[w]);
+      } else if (w.length === 1 && w >= "a" && w <= "z") {
+        tokens.push(w.toUpperCase());
       } else {
-        // Unknown word -> Fingerspell letter by letter
+        // Unknown word -> Fingerspell letter by letter in authentic ISL
         for (const char of w.toUpperCase()) {
           if (char >= "A" && char <= "Z") {
             tokens.push(char);
@@ -424,7 +439,7 @@ class ISLEngine {
     const skinRatio = skinCount / totalSampled;
 
     // Hand not visible or too small
-    if (skinRatio < 0.04 || skinCount < 80) {
+    if (skinRatio < 0.05 || skinCount < 180) {
       return { isHandPresent: false, sign: null, confidence: 0 };
     }
 
@@ -471,40 +486,48 @@ class ISLEngine {
     }
     if (inPeak && peakWidth >= 2) peaks++;
 
-    // Two hands detected or very wide palm in upper center -> NAMASTE
-    if (skinRatio > 0.32 && aspectRatio > 1.35) {
-      return { isHandPresent: true, sign: "NAMASTE", confidence: 0.92 };
+    // Two hands detected or very wide palm in interactive zone -> NAMASTE / HELP / STOP
+    if (aspectRatio > 1.30) {
+      if (skinRatio > 0.22) {
+        return { isHandPresent: true, sign: "NAMASTE", confidence: 0.94 };
+      } else {
+        return { isHandPresent: true, sign: "HELP", confidence: 0.92 };
+      }
     }
 
     // Classify gesture based on geometry and finger peaks:
-    let detectedSign = "A";
+    let detectedSign = null;
     let conf = 0.85;
 
     if (peaks === 0) {
-      // Fist / thumb side -> A
-      detectedSign = "A";
-      conf = 0.88;
+      // Must be a compact fist (aspect ratio ~0.7 to 1.3)
+      if (aspectRatio >= 0.70 && aspectRatio <= 1.30) {
+        detectedSign = "A";
+        conf = 0.88;
+      } else {
+        return { isHandPresent: false, sign: null, confidence: 0 };
+      }
     } else if (peaks === 1) {
       // 1 finger up (index pointing) -> D / 1
       detectedSign = "D";
-      conf = 0.86;
+      conf = 0.90;
     } else if (peaks === 2) {
       // 2 fingers (V peace sign) -> V / 2
       detectedSign = "V";
-      conf = 0.89;
+      conf = 0.92;
     } else if (peaks === 3) {
-      // 3 fingers up -> W / 3
+      // 3 fingers up -> W / 3 / WATER
       detectedSign = "W";
-      conf = 0.84;
+      conf = 0.90;
     } else if (peaks >= 4) {
       if (aspectRatio < 0.75) {
-        // Tall flat hand -> B
+        // Tall flat hand -> B / 4
         detectedSign = "B";
-        conf = 0.90;
+        conf = 0.92;
       } else {
         // Open wide hand -> HELLO / 5
         detectedSign = "HELLO";
-        conf = 0.88;
+        conf = 0.90;
       }
     }
 
@@ -516,8 +539,12 @@ class ISLEngine {
       const mr = data[midIdx], mg = data[midIdx + 1];
       if (mr < 80 || (mr - mg) < 8) {
         detectedSign = "C";
-        conf = 0.87;
+        conf = 0.89;
       }
+    }
+
+    if (!detectedSign) {
+      return { isHandPresent: false, sign: null, confidence: 0 };
     }
 
     return {
@@ -562,6 +589,8 @@ class ISLEngine {
           const tokens = data.sentence.raw_tokens || [];
           const sentence = data.sentence.english_sentence || (tokens.length > 0 ? tokens[0] : "");
           const conf = data.actual_confidence || 0.85;
+          const reg0 = (data.regions && data.regions.length > 0) ? data.regions[0] : {};
+          const handedness = reg0.handedness || (data.regions_count > 1 || reg0.is_dual_hand ? "two-handed" : "one-handed");
 
           if (tokens.length > 0 && conf >= 0.45) {
             return {
@@ -569,6 +598,7 @@ class ISLEngine {
               sign: tokens[0],
               sentence: sentence,
               confidence: conf,
+              handedness: handedness,
               source: "neural_backend",
               badge: data.verification_badge || "PYTORCH NEURAL ENGINE"
             };

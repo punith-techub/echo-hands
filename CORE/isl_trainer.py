@@ -289,14 +289,27 @@ class ISLMemoryTrainer:
         return results
 
     def save(self, target_path: Optional[str] = None) -> None:
-        """Persist prototypes to disk atomically."""
+        """Persist prototypes to disk atomically and safely across concurrent Windows file handles."""
         path = target_path or self.memory_path
         os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
-        torch.save({
-            "feature_dim": self.feature_dim,
-            "prototypes": self.prototypes,
-            "version": "1.0.0"
-        }, path)
+        tmp_path = path + f".tmp_{os.getpid()}"
+        try:
+            torch.save({
+                "feature_dim": self.feature_dim,
+                "prototypes": self.prototypes,
+                "version": "1.0.0"
+            }, tmp_path)
+            if os.path.exists(tmp_path):
+                os.replace(tmp_path, path)
+        except Exception as e:
+            try:
+                torch.save({
+                    "feature_dim": self.feature_dim,
+                    "prototypes": self.prototypes,
+                    "version": "1.0.0"
+                }, path)
+            except Exception as e2:
+                print(f"[ISLMemoryTrainer] Warning: Could not persist memory file ({e2}). Memory retained in RAM.")
 
     def count(self) -> int:
         """Return total number of registered prototypes."""

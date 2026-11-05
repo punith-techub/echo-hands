@@ -32,6 +32,7 @@ from CORE.sentence_synthesizer import SentenceSynthesizer
 from CORE.speech_engine import SpeechEngine
 from CORE.online_learner import OnlineLearner
 from CORE.verifier import AIVerifier
+from CORE.isl_landmarks import classify_isl_landmarks
 
 def encode_rgb_to_base64(rgb_np: np.ndarray) -> str:
     _, buffer = cv2.imencode(".jpg", cv2.cvtColor(rgb_np, cv2.COLOR_RGB2BGR), [int(cv2.IMWRITE_JPEG_QUALITY), 90])
@@ -258,6 +259,30 @@ def process_translation_pipeline(
             "crop_base64": f"data:image/jpeg;base64,{encode_rgb_to_base64(reg.crop)}",
             **pred
         })
+
+    # 2.5 High-Precision 3D ISL Landmark Verification (Biometric Hand Geometry)
+    landmarks = getattr(sign_engine, "last_mediapipe_landmarks", None)
+    if landmarks and len(landmarks) > 0:
+        try:
+            lm_res = classify_isl_landmarks(landmarks)
+            if lm_res and lm_res.get("confidence", 0) >= 0.85:
+                lm_sign = lm_res["sign"]
+                lm_conf = float(lm_res["confidence"])
+                lm_handedness = lm_res.get("handedness", "one-handed")
+                raw_tokens = [lm_sign]
+                token_confidences = [lm_conf]
+                if region_results:
+                    region_results[0]["predicted_sign"] = lm_sign
+                    region_results[0]["confidence"] = lm_conf
+                    region_results[0]["handedness"] = lm_handedness
+                    region_results[0]["chosen_brain"] = f"ISL 3D Landmark Geometry ({lm_handedness.title()})"
+                    sign_meta = get_sign_info(lm_sign)
+                    if sign_meta:
+                        region_results[0]["hindi_translation"] = sign_meta.get("hindi", "")
+                        region_results[0]["hindi_transliteration"] = sign_meta.get("translit", "")
+                        region_results[0]["phonetic_pronunciation"] = sign_meta.get("phonetic", "")
+        except Exception as e:
+            print(f"[app.py] ISL Landmark verification warning: {e}")
 
     # 3. Calculate ACTUAL confidence score (NOT dummy one)
     if token_confidences:

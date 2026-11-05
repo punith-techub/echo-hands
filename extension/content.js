@@ -206,15 +206,16 @@
       <div class="eh-quick-sign-bar">
         <button class="eh-sign-pill-btn" data-sign="NAMASTE">NAMASTE</button>
         <button class="eh-sign-pill-btn" data-sign="HELP">HELP</button>
+        <button class="eh-sign-pill-btn" data-sign="STOP">STOP</button>
+        <button class="eh-sign-pill-btn" data-sign="WELCOME">WELCOME</button>
         <button class="eh-sign-pill-btn" data-sign="WATER">WATER</button>
         <button class="eh-sign-pill-btn" data-sign="FOOD">FOOD</button>
         <button class="eh-sign-pill-btn" data-sign="YES">YES</button>
         <button class="eh-sign-pill-btn" data-sign="NO">NO</button>
-        <button class="eh-sign-pill-btn" data-sign="A">A</button>
-        <button class="eh-sign-pill-btn" data-sign="B">B</button>
-        <button class="eh-sign-pill-btn" data-sign="C">C</button>
-        <button class="eh-sign-pill-btn" data-sign="D">D</button>
-        <button class="eh-sign-pill-btn" data-sign="V">V</button>
+        <button class="eh-sign-pill-btn" data-sign="A">A [2H]</button>
+        <button class="eh-sign-pill-btn" data-sign="B">B [2H]</button>
+        <button class="eh-sign-pill-btn" data-sign="D">D [2H]</button>
+        <button class="eh-sign-pill-btn" data-sign="X">X [2H]</button>
         <button class="eh-sign-pill-btn" id="eh-toggle-alphabet">A-Z ▾</button>
       </div>
       <!-- Expandable A-Z Keyboard Strip -->
@@ -353,10 +354,11 @@
       <div class="eh-normal-quick-btns">
         <button class="eh-voice-pill-btn" data-text="A">Say: "A"</button>
         <button class="eh-voice-pill-btn" data-text="B">Say: "B"</button>
-        <button class="eh-voice-pill-btn" data-text="C">Say: "C"</button>
-        <button class="eh-voice-pill-btn" data-text="Hello">Say: "Hello"</button>
+        <button class="eh-voice-pill-btn" data-text="D">Say: "D"</button>
         <button class="eh-voice-pill-btn" data-text="Namaste">Say: "Namaste"</button>
         <button class="eh-voice-pill-btn" data-text="Do you need help?">Say: "Help?"</button>
+        <button class="eh-voice-pill-btn" data-text="Stop here">Say: "Stop"</button>
+        <button class="eh-voice-pill-btn" data-text="Welcome my friend">Say: "Welcome"</button>
       </div>
       <div class="eh-normal-input-wrap">
         <input type="text" id="eh-normal-input" class="eh-normal-input" placeholder="Type text to sign & press Enter...">
@@ -588,7 +590,8 @@
 
         if (result && result.isHandPresent && result.sign) {
           if (pipStatus) {
-            pipStatus.textContent = `AI: ${result.sign} (${Math.round(result.confidence * 100)}%)`;
+            const handBadge = result.handedness === "two-handed" ? " [2-HAND]" : " [1-HAND]";
+            pipStatus.textContent = `AI: ${result.sign}${handBadge} (${Math.round(result.confidence * 100)}%)`;
             pipStatus.style.color = "#00ffcc";
           }
 

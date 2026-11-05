@@ -118,8 +118,10 @@ class MultiSignEngine:
         mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb)
         try:
             result = self.hand_landmarker.detect(mp_image)
+            self.last_mediapipe_landmarks = result.hand_landmarks if result and result.hand_landmarks else []
         except Exception as exc:
             print(f"[MultiSignEngine] HandLandmarker.detect error: {exc}")
+            self.last_mediapipe_landmarks = []
             return []
 
         boxes = []
@@ -327,17 +329,18 @@ class MultiSignEngine:
                     # Dual-hand merging rules:
                     # When 3 or more hands are present, it is a multi-sign strip or sentence poster.
                     # In a strip/sequence, distinct side-by-side hands must only merge if overlapping (h_gap == 0).
-                    # For an isolated 2-hand scene, interacting hands in close proximity merge into a dual-hand envelope.
+                    # For an interactive 2-hand scene, two interacting hands in ISL merge into a unified dual-hand envelope.
                     is_multi_sequence = len(boxes) >= 3
-                    max_gap = 0 if is_multi_sequence else max(12, int(min_w * 0.25))
-                    is_vert_aligned = v_overlap_len > (min_h * 0.35)
+                    max_gap = 0 if is_multi_sequence else max(90, int(min_w * 1.6))
+                    is_vert_aligned = True if not is_multi_sequence else (v_overlap_len > (min_h * 0.35))
 
                     merged_w = max(x2_a, x2_b) - min(x1_a, x1_b)
                     merged_h = max(y2_a, y2_b) - min(y1_a, y1_b)
                     merged_aspect = merged_w / float(merged_h) if merged_h > 0 else 1.0
 
-                    # Dual-hand envelopes are compact (aspect ratio <= 2.0)
-                    if (h_gap <= max_gap and is_vert_aligned and merged_aspect <= 2.0):
+                    # Dual-hand envelopes for 2 hands can span wide gesture bounds (up to aspect 3.2)
+                    max_aspect = 1.8 if is_multi_sequence else 3.2
+                    if (h_gap <= max_gap and is_vert_aligned and merged_aspect <= max_aspect):
                         x1_merged = min(x1_a, x1_b)
                         y1_merged = min(y1_a, y1_b)
                         x2_merged = max(x2_a, x2_b)
